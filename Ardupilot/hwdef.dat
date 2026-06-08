@@ -1,0 +1,221 @@
+# for the MicoAir743 hardware
+# MCU class and specific type
+MCU STM32H7xx STM32H743xx
+# board ID
+APJ_BOARD_ID AP_HW_MicoAir743
+# =========================================================
+# CLOCK CONFIG
+# =========================================================
+# Khai báo 0 để sử dụng xung nội HSI (tự động cấu hình PLL)
+OSCILLATOR_HZ 0
+# ChibiOS system timer
+STM32_ST_USE_TIMER 12
+define CH_CFG_ST_RESOLUTION 16
+# =========================================================
+# USB & SYSTEM CONFIG (FIXED)
+# =========================================================
+# Ép buộc USB hoạt động mà không cần tín hiệu từ chân VBUS (Quan trọng cho custom board)
+define BOARD_OTG_NOVBUSSENS 1
+define STM32_OTG1_VBUS_SENSING FALSE
+# Bật USB OTG
+define STM32_USB_USE_OTG1 TRUE
+define STM32_USE_USB TRUE
+# Force USB clock source từ HSI48 (internal 48MHz oscillator riêng)
+define STM32_HSI48_ENABLED TRUE
+PA11 OTG_FS_DM OTG1
+PA12 OTG_FS_DP OTG1
+# =========================================================
+# FLASH
+# =========================================================
+FLASH_SIZE_KB 2048
+FLASH_RESERVE_START_KB 128
+define HAL_STORAGE_SIZE 32768
+STORAGE_FLASH_PAGE 14
+# default to all pins low
+DEFAULTGPIO OUTPUT LOW PULLDOWN
+# =========================================================
+# UART ORDER
+# =========================================================
+SERIAL_ORDER OTG1 USART1 USART2 USART3 UART4 USART6 UART7 UART8
+# =========================================================
+# UARTS
+# =========================================================
+# USART1 - TELEM1
+PA9  USART1_TX USART1
+PA10 USART1_RX USART1
+# USART2 - DJIO3
+PA2 USART2_TX USART2
+PA3 USART2_RX USART2
+# USART3 - GPS
+PD8 USART3_TX USART3
+PD9 USART3_RX USART3
+# UART4 - TELEM2
+PA0 UART4_TX UART4
+PA1 UART4_RX UART4
+# UART6 - RC_INPUT
+PC6 USART6_TX USART6
+PC7 USART6_RX USART6
+PD0 SBUS_INV OUTPUT LOW
+# UART7 - ESC
+PE7 UART7_RX UART7
+# UART8 - TELEM3
+PE1 UART8_TX UART8
+PE0 UART8_RX UART8
+# =========================================================
+# SWD
+# =========================================================
+PA13 JTMS-SWDIO SWD
+PA14 JTCK-SWCLK SWD
+# =========================================================
+# CAN
+# =========================================================
+PB8 CAN1_RX CAN1
+PB9 CAN1_TX CAN1
+# =========================================================
+# I2C
+# =========================================================
+# I2C1 (index 0) - CONNECTOR | I2C2 (index 1) - SENSORS
+I2C_ORDER I2C1 I2C2
+# Giới hạn tốc độ I2C xuống 100kHz (thay vì 400kHz mặc định)
+# → Giúp IST8310/DPS310 respond ổn định hơn khi debug
+define HAL_I2C_BUS_CLOCK_MAX_KHZ 100
+# Fix STM32H7 DMA silicon bug: I2C DMA conflict với ADC/SPI → disable DMA cho I2C
+define STM32_I2C_USE_DMA FALSE
+# I2C1 - CONNECTOR
+PB6 I2C1_SCL I2C1
+PB7 I2C1_SDA I2C1
+# I2C2 - BARO & MAG (IST8310 + DPS310)
+# PULLUP: hỗ trợ thêm cho điện trở ngoài 10K (borderline ở 100kHz)
+PB10 I2C2_SCL I2C2 PULLUP
+PB11 I2C2_SDA I2C2 PULLUP
+# =========================================================
+# PWM OUTPUT
+# =========================================================
+PE14 TIM1_CH4  TIM1  PWM(1)  GPIO(50) BIDIR
+PE13 TIM1_CH3  TIM1  PWM(2)  GPIO(51)
+PE11 TIM1_CH2  TIM1  PWM(3)  GPIO(52) BIDIR
+PE9  TIM1_CH1  TIM1  PWM(4)  GPIO(53)
+PB1  TIM3_CH4  TIM3  PWM(5)  GPIO(54) BIDIR
+PB0  TIM3_CH3  TIM3  PWM(6)  GPIO(55)
+PD12 TIM4_CH1  TIM4  PWM(7)  GPIO(56)
+PD13 TIM4_CH2  TIM4  PWM(8)  GPIO(57)
+PD14 TIM4_CH3  TIM4  PWM(9)  GPIO(58)
+PD15 TIM4_CH4  TIM4  PWM(10) GPIO(59)
+# =========================================================
+# LEDs
+# =========================================================
+PE5 LED_RED   OUTPUT LOW GPIO(0)
+PE6 LED_GREEN OUTPUT LOW GPIO(1)
+PE4 LED_BLUE  OUTPUT LOW GPIO(2)
+define AP_NOTIFY_GPIO_LED_RGB_RED_PIN 0
+define AP_NOTIFY_GPIO_LED_RGB_GREEN_PIN 1
+define AP_NOTIFY_GPIO_LED_RGB_BLUE_PIN 2
+define AP_NOTIFY_GPIO_LED_RGB_ENABLED 1
+# =========================================================
+# ADC POWER
+# =========================================================
+PC0 BATT_VOLTAGE_SENS ADC1 SCALE(1)
+PC1 BATT_CURRENT_SENS ADC1 SCALE(1)
+define HAL_BATT_VOLT_PIN 10
+define HAL_BATT_CURR_PIN 11
+define HAL_BATT_VOLT_SCALE 21.12
+define HAL_BATT_CURR_SCALE 40.2
+# =========================================================
+# COMPASS - Full coverage: mọi chip variant và mọi địa chỉ
+# =========================================================
+# BẬT cả probing loop để quét tự động 0x0C/0x0D/0x0E/0x0F trên INTERNAL bus
+# BẬT cả EXTERNAL để hỗ trợ la bàn GPS cắm ngoài
+# =========================================================
+define AP_COMPASS_IST8310_INTERNAL_BUS_PROBING_ENABLED 1
+define AP_COMPASS_IST8310_EXTERNAL_BUS_PROBING_ENABLED 1
+define AP_COMPASS_PROBING_ENABLED 1
+define HAL_COMPASS_AUTO_ROT_DEFAULT 2
+# --- IST8310 on-board (I2C2 = ALL_INTERNAL, bus index 1) ---
+COMPASS IST8310 I2C:ALL_INTERNAL:0x0E false ROTATION_YAW_90
+# --- QMC5883L on-board (nếu board dùng QMC thay IST) ---
+COMPASS QMC5883L I2C:ALL_INTERNAL:0x0D false ROTATION_YAW_90
+# --- External fallback: la bàn GPS cắm ngoài qua I2C1 ---
+COMPASS IST8310 I2C:ALL_EXTERNAL:0x0E true ROTATION_NONE
+COMPASS QMC5883L I2C:ALL_EXTERNAL:0x0D true ROTATION_NONE
+# =========================================================
+# BARO
+# DPS310 trên I2C2 (index 1) - probe cả 2 địa chỉ
+BARO DPS310 I2C:1:0x77
+BARO DPS310 I2C:1:0x76
+# =========================================================
+# SDMMC
+# =========================================================
+PC12 SDMMC1_CK  SDMMC1
+PD2  SDMMC1_CMD SDMMC1
+PC8  SDMMC1_D0  SDMMC1
+PC9  SDMMC1_D1  SDMMC1
+PC10 SDMMC1_D2  SDMMC1
+PC11 SDMMC1_D3  SDMMC1
+define FATFS_HAL_DEVICE SDCD1
+# =========================================================
+# SPI1 - OSD
+# =========================================================
+PA5 SPI1_SCK  SPI1
+PA6 SPI1_MISO SPI1
+PA7 SPI1_MOSI SPI1
+PB12 AT7456E_CS CS
+# =========================================================
+# SPI2 - IMU
+# =========================================================
+PD3 SPI2_SCK  SPI2
+PC2 SPI2_MISO SPI2
+PC3 SPI2_MOSI SPI2
+# Tên CS PHẢI khớp chính xác với tên dùng trong SPIDEV bên dưới
+PD5  GYRO_CS   CS
+PD4  ACCEL_CS  CS
+PA15 BMI270_CS CS
+# =========================================================
+# SPI DEVICES
+# =========================================================
+SPIDEV bmi088_a SPI2 DEVID1 ACCEL_CS   MODE3 10*MHZ 10*MHZ
+SPIDEV bmi088_g SPI2 DEVID2 GYRO_CS    MODE3 10*MHZ 10*MHZ
+SPIDEV bmi270   SPI2 DEVID3 BMI270_CS  MODE3  1*MHZ 10*MHZ
+SPIDEV osd      SPI1 DEVID4 AT7456E_CS MODE0 10*MHZ 10*MHZ
+# =========================================================
+# IMU
+# =========================================================
+IMU BMI088 SPI:bmi088_a SPI:bmi088_g ROTATION_ROLL_180_YAW_270
+IMU BMI270 SPI:bmi270 ROTATION_ROLL_180
+# =========================================================
+# DMA PRIORITY
+# Ưu tiên DMA: tránh xung đột SDMMC vs SPI (nguyên nhân "unable to initialise driver")
+# =========================================================
+DMA_PRIORITY SDMMC* ADC* SPI* UART* TIM*
+# =========================================================
+# BOOT DELAY
+# IST8310 hardware bug: WHOAMI register bị corrupt bởi bus noise khi boot
+# Cần delay để chip tự reset trước khi driver probe
+# Pixhawk driver đã có software reset (CNTL2_VAL_SRST) nhưng delay thêm giúp ổn hơn
+# =========================================================
+define HAL_BARO_ALLOW_INIT_NO_BARO 1
+define BRD_BOOT_DELAY_DEFAULT 3000
+# =========================================================
+# FATFS
+# =========================================================
+define HAL_OS_FATFS_IO 1
+# =========================================================
+# I2C / COMPASS / BARO SAFETY DEFINES
+# =========================================================
+# HAL_I2C_INTERNAL_MASK = 2 (bitmask):
+# I2C_ORDER: I2C1=index0, I2C2=index1
+# bit0=I2C1(external connector), bit1=I2C2(on-board sensors)
+# 0b10 = 2 → chỉ I2C2 là internal (nơi IST8310 + DPS310 gắn)
+define HAL_I2C_INTERNAL_MASK 2
+# Cho phép boot/arm kể cả khi compass hoặc baro chưa init được
+define ALLOW_ARM_NO_COMPASS 1
+define HAL_BARO_ALLOW_INIT_NO_BARO 1
+# =========================================================
+# OSD
+# =========================================================
+define OSD_ENABLED 1
+define HAL_OSD_TYPE_DEFAULT 1
+ROMFS_WILDCARD libraries/AP_OSD/fonts/font*.bin
+# =========================================================
+# FRAME TYPE
+# =========================================================
+define HAL_FRAME_TYPE_DEFAULT 12
