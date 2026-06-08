@@ -29,3 +29,8 @@ source ~/.profile
 ```bash
 ./waf --version
 ```
+# Khái quát về cách build firmwave từ Ardupilot
+Để build cần khai báo sơ đồ phần cứng và bộ bootloader, sẽ gồm 2 file:
+* hwdef.dat
+* bl-hwdef.dat
+
