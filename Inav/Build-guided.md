@@ -45,22 +45,8 @@ src/main/target/SaolaH743/
 └── config.c          # (Tùy chọn) Chứa cấu hình mặc định (default config) khi flash firmware lần đầu tiên
 ```
 
-## 4. Xử lý lỗi thường gặp khi Build Target Mới (Custom FC)
 
-### Lỗi `undefined reference to timerHardware` hoặc `TIMx_CHy undeclared`
-- **Dấu hiệu:** Quá trình biên dịch `target.c` thất bại và báo lỗi không tìm thấy `timerHardware` hoặc một channel cụ thể bị báo `undeclared` (ví dụ: `TIM4_CH4 undeclared here`).
-- **Nguyên nhân cốt lõi:** INAV sử dụng các hệ thống C Preprocessor Macro rất phức tạp như `CONCAT()` và `PP_CALL()` để cấu hình tự động hệ thống DMAMUX và map channel cho timer. Các macro cốt lõi này nằm trong tệp `common/utils.h`. Tệp `utils.h` không được thêm trực tiếp mà được nạp gián tiếp thông qua `drivers/io.h`. Việc thiếu `#include "drivers/io.h"` ở đầu file `target.c` khiến trình biên dịch không thể "bung" (expand) các định nghĩa DMA cho Timer, dẫn đến việc đọc các tên biến dưới dạng chuỗi thô rác.
-- **Khắc phục:** Đảm bảo luôn khai báo đầy đủ các tệp header (include) cần thiết sau ở ĐẦU tệp `target.c`:
-  ```c
-  #include "drivers/bus.h"
-  #include "drivers/io.h"
-  #include "drivers/pwm_mapping.h"
-  #include "drivers/timer.h"
-  #include "drivers/pinio.h"
-  #include "drivers/sensor.h"
-  ```
-
-## 5. Hướng dẫn Build (Biên dịch) Firmware
+## 4. Hướng dẫn Build (Biên dịch) Firmware
 
 Để bắt đầu quá trình biên dịch (build), chúng ta sẽ sử dụng công cụ CMake. Những thứ kiện quyết bạn cần là: `gcc-arm-none-eabi`, `make` và `cmake`.
 
