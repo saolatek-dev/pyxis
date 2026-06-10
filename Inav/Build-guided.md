@@ -68,7 +68,7 @@ make SaolaH743
 
 > **Ghi chú quá trình Build:** Sau khi chạy lệnh `make`, CMake sẽ gọi bộ công cụ biên dịch ARM GCC. Nếu thành công, INAV sẽ tạo một bản thực thi `.elf` tại `build/bin/SaolaH743.elf` và ngay sau đó được tự động convert thành tệp Hex: **`build/inav_SaolaH743.hex`**.
 
-## 6. Nạp Firmware (Flash) vào Board
+## 5. Nạp Firmware (Flash) vào Board
 
 Sau khi đã có file `.hex`, bạn có thể flash nó vào Flight Controller:
 1. Cắm cáp USB kết nối board với máy tính.
