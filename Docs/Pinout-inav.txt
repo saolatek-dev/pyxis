@@ -1,0 +1,100 @@
+============================================================
+SAOLAH743 — PINOUT REFERENCE (từ hwdef ArduPilot)
+============================================================
+
+------------------------------------------------------------
+SERIAL / UART
+------------------------------------------------------------
+USB VCP   PA11 (DM)     PA12 (DP)    — OTG FS
+UART1     TX: PA9       RX: PA10     — TELEM1
+UART2     TX: PA2       RX: PA3      — DJIO3
+UART3     TX: PD8       RX: PD9      — GPS
+UART4     TX: PA0       RX: PA1      — TELEM2
+UART6     TX: PC6       RX: PC7      — RC INPUT
+UART7     TX: —         RX: PE7      — ESC telemetry
+UART8     TX: PE1       RX: PE0      — TELEM3
+SBUS_INV  PD0 (OUTPUT LOW)
+
+------------------------------------------------------------
+SPI
+------------------------------------------------------------
+SPI1      SCK: PA5    MISO: PA6    MOSI: PA7
+SPI2      SCK: PD3    MISO: PC2    MOSI: PC3
+
+CS pins:
+  BMI270        CS: PA15   (SPI2)  — init 1MHz → 10MHz
+  BMI088 Accel  CS: PD4    (SPI2)
+  BMI088 Gyro   CS: PD5    (SPI2)
+  AT7456E OSD   CS: PB12   (SPI1)
+
+------------------------------------------------------------
+I2C
+------------------------------------------------------------
+I2C1      SCL: PB6    SDA: PB7     — Connector ngoài
+I2C2      SCL: PB10   SDA: PB11   — Baro + Mag (có PULLUP)
+
+Sensors trên I2C2:
+  Baro:  DPS310    addr 0x77 / 0x76
+  Mag:   IST8310   addr 0x0E
+  Mag:   QMC5883L  addr 0x0D
+
+------------------------------------------------------------
+MOTOR / PWM OUTPUT
+------------------------------------------------------------
+M1   PE14   TIM1_CH4   BIDIR
+M2   PE13   TIM1_CH3
+M3   PE11   TIM1_CH2   BIDIR
+M4   PE9    TIM1_CH1
+M5   PB1    TIM3_CH4   BIDIR
+M6   PB0    TIM3_CH3
+M7   PD12   TIM4_CH1
+M8   PD13   TIM4_CH2
+M9   PD14   TIM4_CH3
+M10  PD15   TIM4_CH4
+
+------------------------------------------------------------
+ADC
+------------------------------------------------------------
+Voltage   PC0   ADC1   scale 21.12
+Current   PC1   ADC1   scale 40.2
+
+------------------------------------------------------------
+LED (active LOW)
+------------------------------------------------------------
+LED Red    PE5
+LED Green  PE6
+LED Blue   PE4
+
+------------------------------------------------------------
+SDMMC / BLACKBOX (SD card)
+------------------------------------------------------------
+SDMMC1_CK    PC12
+SDMMC1_CMD   PD2
+SDMMC1_D0    PC8
+SDMMC1_D1    PC9
+SDMMC1_D2    PC10
+SDMMC1_D3    PC11
+
+------------------------------------------------------------
+CAN
+------------------------------------------------------------
+CAN1_RX   PB8
+CAN1_TX   PB9
+
+------------------------------------------------------------
+SWD (debug)
+------------------------------------------------------------
+SWDIO   PA13
+SWDCLK  PA14
+
+============================================================
+GHI CHÚ CHO INAV TARGET
+============================================================
+- Chỉ dùng BMI270 (PA15/SPI2), bỏ BMI088
+- SERIAL_PORT_COUNT = 9 (8 UART + 1 VCP)
+- RC input: UART6 (PC6/PC7) + SBUS inverter PD0
+- LED0_PIN = PE5 (green) hoặc PE6
+- Motor TIM1 (M1-M4) + TIM3 (M5-M6) + TIM4 (M7-M10)
+- USE_DSHOT_DMAR bắt buộc với H743
+- I2C2 là internal (baro/mag), I2C1 là external connector
+============================================================
