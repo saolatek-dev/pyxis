@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+# Saolah743 board specific sensors init
+#------------------------------------------------------------------------------
+
+board_adc start
+
+# Internal SPI bus (SPI2): both IMU drivers are compiled into every config and
+# the populated one is auto-detected — each driver probes its own chip select
+# (BMI088 gyro/accel on PD5/PD4, BMI270 on PA15), so on a single-IMU board the
+# BMI088 probe simply fails and boot carries on with the BMI270 alone.
+#
+# BMI088 is started first on purpose. Both parts are internal and therefore
+# get the same default calibration priority, and the sensor voter only hands
+# over to an equal-priority sensor with strictly higher confidence — so the
+# first instance to come up stays primary. Starting BMI088 first is what makes
+# it the main IMU on the boards that carry both.
+if bmi088 -s -b 2 -A -R 6 start
+then
+	bmi088 -s -b 2 -G -R 6 start
+fi
+
+bmi270 -s -b 2 -R 0 start
+
+# Internal baro on I2C2, probe both possible addresses (0x77 then 0x76).
+# Only one of the two baro drivers is present in any given build (default
+# configs: DPS310, the dps368 config: DPS368), so the command belonging to
+# the other one is simply an unknown command and its probe is a safe no-op.
+#
+# Bus speed dropped from the driver default 400kHz to 100kHz for signal
+# integrity — DPS310 was reading wildly wrong pressure at 400kHz on this
+# board (see docs/Saolah743/px4-known-issues.md), matching a fix ArduPilot
+# made for the same chip on another STM32H7 board (PR #12516: reduced clock
+# after seeing garbage register reads with comms reporting no errors). The
+# DPS368 is kept at the same 100kHz until it has been verified on hardware.
+if ! dps368 -I -a 119 -f 100 start
+then
+	dps368 -I -a 118 -f 100 start
+fi
+
+if ! dps310 -I -a 119 -f 100 start
+then
+	dps310 -I -a 118 -f 100 start
+fi
+
+# Internal compass (I2C2), probe both possible chips
+if ! ist8310 -I -R 2 start
+then
+	qmc5883l -I -R 2 start
+fi
+
+# External compass (I2C1 connector), probe both possible chips
+if ! ist8310 -X -R 0 start
+then
+	qmc5883l -X -R 0 start
+fi

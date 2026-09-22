@@ -1,0 +1,64 @@
+diff --git a/src/drivers/barometer/CMakeLists.txt b/src/drivers/barometer/CMakeLists.txt
+index 5bb31ec345..ea10622b8e 100644
+--- a/src/drivers/barometer/CMakeLists.txt
++++ b/src/drivers/barometer/CMakeLists.txt
+@@ -35,6 +35,7 @@ add_subdirectory(bmp280)
+ add_subdirectory(bmp388)
+ add_subdirectory(bmp581)
+ add_subdirectory(dps310)
++add_subdirectory(dps368)
+ add_subdirectory(lps22hb)
+ #add_subdirectory(lps25h) # not ready for general inclusion
+ add_subdirectory(lps33hw)
+diff --git a/src/drivers/barometer/dps310/DPS310.cpp b/src/drivers/barometer/dps310/DPS310.cpp
+index a9e1f73a0d..977c0ba216 100644
+--- a/src/drivers/barometer/dps310/DPS310.cpp
++++ b/src/drivers/barometer/dps310/DPS310.cpp
+@@ -65,7 +65,22 @@ DPS310::~DPS310()
+ int
+ DPS310::init()
+ {
+-	if (RegisterRead(Register::ID) != Infineon_DPS310::REV_AND_PROD_ID) {
++	// The Product ID read can fail on the very first transfer after power-up
++	// (the chip needs up to 40 ms after VDD to answer). A single failed read
++	// leaves buf = 0 and looks like a Product_ID mismatch, so retry a few
++	// times before giving up -- same approach Betaflight uses for this part.
++	bool id_ok = false;
++
++	for (int retry = 0; retry < 5; retry++) {
++		if (RegisterRead(Register::ID) == Infineon_DPS310::REV_AND_PROD_ID) {
++			id_ok = true;
++			break;
++		}
++
++		usleep(100000);	// 100 milliseconds
++	}
++
++	if (!id_ok) {
+ 		PX4_ERR("Product_ID mismatch");
+ 		return PX4_ERROR;
+ 	}
+@@ -249,7 +264,10 @@ uint8_t
+ DPS310::RegisterRead(Register reg)
+ {
+ 	uint8_t buf{};
+-	_interface->read((uint8_t)reg, &buf, 1);
++
++	if (_interface->read((uint8_t)reg, &buf, 1) != PX4_OK) {
++		perf_count(_comms_errors);
++	}
+ 
+ 	return buf;
+ }
+diff --git a/src/drivers/drv_sensor.h b/src/drivers/drv_sensor.h
+index bff7cfd7cd..a7af2e088e 100644
+--- a/src/drivers/drv_sensor.h
++++ b/src/drivers/drv_sensor.h
+@@ -144,6 +144,7 @@
+ #define DRV_ACC_DEVTYPE_LSM303AGR       0x61
+ #define DRV_MAG_DEVTYPE_LSM303AGR       0x62
+ #define DRV_IMU_DEVTYPE_ADIS16497       0x63
++#define DRV_BARO_DEVTYPE_DPS368         0x64
+ #define DRV_BARO_DEVTYPE_BAROSIM        0x65
+ #define DRV_GYR_DEVTYPE_BMI088          0x66
+ #define DRV_BARO_DEVTYPE_BMP388         0x67

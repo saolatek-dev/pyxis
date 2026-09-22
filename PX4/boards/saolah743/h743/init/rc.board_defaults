@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# Saolah743 board specific defaults
+#------------------------------------------------------------------------------
+param set-default BAT1_A_PER_V 40.2
+param set-default BAT1_N_CELLS 4
+param set-default BAT1_V_CHARGED 4.2
+# BAT1_V_DIV = tỉ số chia áp thật (V_pin / V_ADC), KHÔNG phải 21.12 như tài
+# liệu gốc (docs/Saolah743/hwdef-pin.md, kế thừa từ ArduPilot hwdef.dat) ghi.
+# Con số 21.12 đó chưa từng được đo — đội INAV đo trên board mẫu ra đúng
+# 10.93:1 (mạch chia danh định 11:1, R=10k:1k), lệch 0.6% nằm trong dung sai
+# điện trở. Dùng 21.12 khiến điện áp hiện gần gấp đôi thật (pin 3S báo ra
+# 20 mấy volt) — đã verify trực tiếp qua MAVLink trên board thật: báo
+# 20.708V, quy đổi theo tỉ số đúng ra ~10.72V, hợp lý cho pin 3S đang xả.
+# Xem docs/Saolah743/battery-voltage-scale-fix.md.
+param set-default BAT1_V_DIV 10.93
+param set-default BAT1_V_EMPTY 3.2
+
+param set-default SYS_HAS_MAG 1
+param set-default PWM_MAIN_TIM0 -4
+param set-default RC_INPUT_PROTO -1
+
+param set-default IMU_GYRO_CUTOFF 80
+param set-default MC_PITCHRATE_K 0.4
+param set-default MC_ROLLRATE_K 0.35
+param set-default MC_YAWRATE_K 1.2
+param set-default MC_YAWRATE_MAX 360
+param set-default MAV_TYPE 2
+param set-default CA_AIRFRAME 0
+param set-default CA_ROTOR_COUNT 4
+param set-default CBRK_SUPPLY_CHK 894281

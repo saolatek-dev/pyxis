@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# Saolah743 board specific extras init
+#------------------------------------------------------------------------------
+
+# Onboard OSD (AT7456E on SPI1)
+if ! param compare OSD_ATXXXX_CFG 0
+then
+	atxxxx start -s
+fi
+
+# DShot ESC telemetry is wired to UART7 (RX only)
+dshot telemetry -d /dev/ttyS5
