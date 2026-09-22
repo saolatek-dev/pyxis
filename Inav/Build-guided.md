@@ -1,19 +1,19 @@
-# Hướng dẫn Build INAV Firmware
+# Building INAV firmware
 
-Tài liệu này cung cấp các bước cơ bản để cài đặt môi trường và cấu hình build firmware INAV cho một mạch Flight Controller (FC) tùy chỉnh.
+This document gives the basic steps to set up the environment and configure an INAV firmware build for a custom flight controller (FC) board.
 
-## 1. Cài đặt các công cụ cần thiết (Dependencies)
+## 1. Install the required tools (dependencies)
 
-Trước tiên, bạn cần cài đặt các công cụ biên dịch (build tools) và công cụ quản lý mã nguồn. Chạy lệnh sau trong Terminal:
+First, install the build tools and the source control tools. Run the following in a terminal:
 
 ```bash
 sudo apt update
 sudo apt install gcc-arm-none-eabi make git dfu-util
 ```
 
-## 2. Tải mã nguồn INAV
+## 2. Get the INAV source code
 
-Tiến hành tải mã nguồn của INAV từ kho lưu trữ GitHub chính thức và chuyển sang nhánh `master` (hoặc nhánh phiên bản bạn muốn):
+Download the INAV source code from the official GitHub repository and switch to the `master` branch (or the release branch you want):
 
 ```bash 
 git clone https://github.com/iNavFlight/inav.git
@@ -21,9 +21,9 @@ cd inav
 git checkout master
 ```
 
-## 3. Tạo thư mục cấu hình cho Flight Controller (Target)
+## 3. Create the configuration directory for the flight controller (target)
 
-Để biên dịch firmware cho một mạch FC cụ thể (ví dụ: `SaolaH743`), bạn cần tạo một thư mục target mới chứa các thiết lập phần cứng cho mạch đó:
+To compile firmware for a specific FC board (for example `SaolaH743`), create a new target directory holding the hardware settings for that board:
 
 ```bash
 mkdir -p src/main/target/SaolaH743
@@ -31,66 +31,66 @@ cd src/main/target/SaolaH743/
 touch target.h target.c CMakeLists.txt
 ```
 
-> **Lưu ý:** Tên thư mục target thường là tên viết liền của Flight Controller và sẽ được dùng làm tên lệnh build sau này.
+> **Note:** The target directory is usually the flight controller's name written as one word, and is used as the build command name later.
 
-### Cấu trúc thư mục của một Target
+### Structure of a target directory
 
-Bên trong thư mục target vừa tạo (`src/main/target/SaolaH743/`), bạn sẽ cần tạo các file cấu hình. Dưới đây là cấu trúc các file thiết yếu và chức năng của chúng:
+Inside the new target directory (`src/main/target/SaolaH743/`) you need to create the configuration files. The essential files and their roles are:
 
 ```text
 src/main/target/SaolaH743/
-├── CMakeLists.txt    # Khai báo loại chip (MCU) và các cờ biên dịch (build flags)
-├── target.h          # Khai báo, định nghĩa tất cả các chân (pin) và thiết bị ngoại vi (peripheral)
-├── target.c          # Code khởi tạo đặc biệt dành riêng cho mạch (thường ở mức tối giản - minimal)
-└── config.c          # (Tùy chọn) Chứa cấu hình mặc định (default config) khi flash firmware lần đầu tiên
+├── CMakeLists.txt    # Declares the chip (MCU) type and the build flags
+├── target.h          # Declares and defines every pin and peripheral
+├── target.c          # Board-specific initialisation code (usually minimal)
+└── config.c          # (Optional) Default configuration applied when the firmware is first flashed
 ```
 
 
-## 4. Hướng dẫn Build (Biên dịch) Firmware
+## 4. Building (compiling) the firmware
 
-Để bắt đầu quá trình biên dịch (build), chúng ta sẽ sử dụng công cụ CMake. Những thứ kiện quyết bạn cần là: `gcc-arm-none-eabi`, `make` và `cmake`.
+The build uses CMake. The essentials you need are `gcc-arm-none-eabi`, `make` and `cmake`.
 
-Chạy chuỗi lệnh sau trong cửa sổ Terminal:
+Run the following commands in a terminal:
 
 ```bash
-# 1. Quay lại thư mục gốc của project INAV
-cd /đường/dẫn/tới/thư/mục/inav
+# 1. Go back to the root directory of the INAV project
+cd /path/to/inav
 
-# 2. Tạo và di chuyển vào thư mục build
+# 2. Create the build directory and change into it
 mkdir -p build && cd build
 
-# 3. Tạo cấu hình Makefiles (bản Release cho hiệu năng tốt nhất)
+# 3. Generate the Makefiles (Release build for best performance)
 cmake .. -DCMAKE_BUILD_TYPE=Release
 
-# 4. Tiến hành Build (Thay thế 'SaolaH743' bằng tên Target của bạn)
+# 4. Build (replace 'SaolaH743' with your target name)
 make SaolaH743
 ```
 
-> **Ghi chú quá trình Build:** Sau khi chạy lệnh `make`, CMake sẽ gọi bộ công cụ biên dịch ARM GCC. Nếu thành công, INAV sẽ tạo một bản thực thi `.elf` tại `build/bin/SaolaH743.elf` và ngay sau đó được tự động convert thành tệp Hex: **`build/inav_SaolaH743.hex`**.
+> **Build notes:** After `make` runs, CMake invokes the ARM GCC toolchain. On success, INAV produces an executable `.elf` at `build/bin/SaolaH743.elf`, which is then automatically converted to a hex file: **`build/inav_SaolaH743.hex`**.
 
-## 5. Nạp Firmware (Flash) vào Board
+## 5. Flashing the firmware to the board
 
-Sau khi đã có file `.hex`, bạn có thể flash nó vào Flight Controller:
-1. Cắm cáp USB kết nối board với máy tính.
-2. Mở ứng dụng **INAV Configurator**.
-3. Chuyển sang tab **Firmware Flasher** ở menu bên trái.
-4. Nhấn nút **Load firmware [Local]** (Tải tệp firmware từ máy).
-5. Chọn tệp `inav_SaolaH743.hex` vừa được build thành công.
-6. Bấm **Flash Firmware**.
-   *Nếu cổng COM (VCP) chưa hoạt động do board mới tinh, hãy nhấn giữ nút **BOOT** vật lý trên board khi cắm USB để vào chế độ **DFU mode** và thực hiện flash.*
+Once you have the `.hex` file, you can flash it to the flight controller:
+1. Connect the board to the computer with a USB cable.
+2. Open **INAV Configurator**.
+3. Go to the **Firmware Flasher** tab in the left-hand menu.
+4. Click **Load firmware [Local]** (load a firmware file from this computer).
+5. Select the `inav_SaolaH743.hex` file you just built.
+6. Click **Flash Firmware**.
+   *If the COM port (VCP) is not working yet because the board is brand new, hold the physical **BOOT** button on the board while plugging in USB to enter **DFU mode**, then flash.*
 
 
-Kiểm tra trước khi build:
+Checks before building:
 
-Kiểm tra INAV có support BMI270 chưa
+Check whether INAV supports the BMI270
 cd inav 
 grep -r "BMI270" src/main/ --include="*.h" --include="*.c" -l
 
- Kiểm tra SystemClock_Config không bị override
+ Check that SystemClock_Config is not overridden
  grep -r "SystemClock_Config" src/main/ --include="*.c" -l
 
 
-# Build và Flash
+# Build and flash
 
 mkdir -p build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release

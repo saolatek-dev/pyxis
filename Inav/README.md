@@ -1,66 +1,66 @@
 # SaolaH743 INAV Firmware
 
-Dự án này chứa cấu hình firmware INAV dành cho mạch Flight Controller tùy chỉnh **SaolaH743**. Mạch này sử dụng vi điều khiển STM32H743, được thiết kế để cung cấp hiệu suất cao và đầy đủ các tính năng ngoại vi cho flycam/drone.
+This project contains the INAV firmware configuration for the custom **SaolaH743** flight controller board. The board uses the STM32H743 microcontroller and is designed to provide high performance and a full set of peripherals for camera drones and multirotors.
 
-## Tính Năng & Cấu Hình Phần Cứng
+## Features and hardware configuration
 
-Dưới đây là thông số phần cứng cơ bản của mạch dựa trên bản đồ chân (pinout) được tích hợp trong target INAV:
+The basic hardware specifications of the board, based on the pin map built into the INAV target:
 
-*   **Vi điều khiển (MCU):** STM32H743
-*   **Cảm biến gia tốc/góc (IMU):** BMI270 (Giao tiếp qua SPI2). 
-*   **Cảm biến áp suất (Barometer):** DPS310 (Giao tiếp qua I2C2 nội bộ)
-*   **La bàn (Compass):** Hỗ trợ IST8310 hoặc QMC5883L (Giao tiếp qua I2C2 nội bộ)
-*   **OSD:** AT7456E (Giao tiếp qua SPI1)
-*   **Ghi log bay (Blackbox):** Hỗ trợ SD Card qua giao thức SDMMC
-*   **Cổng Giao Tiếp (UARTs):** Hỗ trợ 8 cổng UART vật lý + 1 USB VCP
+*   **Microcontroller (MCU):** STM32H743
+*   **Accelerometer/gyro (IMU):** BMI270 (on SPI2)
+*   **Barometer:** DPS310 (on internal I2C2)
+*   **Compass:** IST8310 or QMC5883L supported (on internal I2C2)
+*   **OSD:** AT7456E (on SPI1)
+*   **Flight logging (Blackbox):** SD card over SDMMC
+*   **Serial ports (UARTs):** 8 physical UARTs + 1 USB VCP
     *   `UART1`: TELEM1
     *   `UART2`: DJIO3
     *   `UART3`: GPS
     *   `UART4`: TELEM2
-    *   `UART6`: RC INPUT (Có tích hợp phần cứng SBUS Inverter trên chân `PD0`)
+    *   `UART6`: RC INPUT (hardware SBUS inverter on pin `PD0`)
     *   `UART7`: ESC telemetry
     *   `UART8`: TELEM3
-*   **Cổng I2C:** 
-    *   `I2C1`: Dành cho các thiết bị ngoại vi gắn ngoài (External connector)
-    *   `I2C2`: Dành cho cảm biến nội bộ (Internal Baro/Mag)
-*   **Đầu ra Motor/Servo (PWM):** Lên đến 10 cổng, hỗ trợ cấu hình DSHOT và DMAR.
-    *   `M1-M4`: Dùng TIM1
-    *   `M5-M6`: Dùng TIM3
-    *   `M7-M10`: Dùng TIM4
-*   **Cảm biến Nguồn (ADC):**
-    *   Điện áp (Voltage): Chân `PC0` (Scale: 21.12)
-    *   Dòng điện (Current): Chân `PC1` (Scale: 40.2)
+*   **I2C ports:**
+    *   `I2C1`: for externally connected peripherals (external connector)
+    *   `I2C2`: for internal sensors (internal baro/mag)
+*   **Motor/servo outputs (PWM):** up to 10 outputs, with DSHOT and DMAR support.
+    *   `M1-M4`: TIM1
+    *   `M5-M6`: TIM3
+    *   `M7-M10`: TIM4
+*   **Power sensing (ADC):**
+    *   Voltage: pin `PC0` (scale: 21.12)
+    *   Current: pin `PC1` (scale: 40.2)
 
-Chi tiết về sơ đồ chân (Pinout) cụ thể cho các ngoại vi, vui lòng tham khảo tệp [pinout.txt](./pinout.txt).
+For the detailed pinout of each peripheral, see [pinout.txt](./pinout.txt).
 
-## Hướng Dẫn Build Firmware (Biên dịch)
+## Building the firmware (compiling)
 
-Quá trình cài đặt môi trường và biên dịch mã nguồn được mô tả cực kỳ chi tiết trong tệp [Build-guided.md](./Build-guided.md).
+Setting up the environment and compiling the source are described in detail in [Build-guided.md](./Build-guided.md).
 
-### Tóm tắt các bước cơ bản:
+### Summary of the basic steps:
 
-1. **Cài đặt các công cụ cần thiết:** `gcc-arm-none-eabi`, `make`, `cmake`, `git`.
-2. **Tải mã nguồn INAV:**
+1. **Install the required tools:** `gcc-arm-none-eabi`, `make`, `cmake`, `git`.
+2. **Get the INAV source code:**
    ```bash
    git clone https://github.com/iNavFlight/inav.git
    cd inav
    git checkout master
    ```
-3. **Chuẩn bị thư mục Target:** 
-   Sử dụng thư mục cấu hình `SaolaH743` có trong dự án này (nếu có các file code) và sao chép vào thư mục `src/main/target/SaolaH743/` của mã nguồn INAV vừa tải.
-4. **Bắt đầu Build:**
+3. **Prepare the target directory:**
+   Copy the `SaolaH743` configuration directory from this project (if it contains the code files) into `src/main/target/SaolaH743/` in the INAV source you just downloaded.
+4. **Build:**
    ```bash
    mkdir -p build && cd build
    cmake .. -DCMAKE_BUILD_TYPE=Release
    make SaolaH743 -j$(nproc)
    ```
-   Nếu thành công, tệp firmware sẽ được lưu tại: `build/inav_SaolaH743.hex`.
+   On success, the firmware file is written to `build/inav_SaolaH743.hex`.
 
-## Hướng Dẫn Flash (Nạp Firmware)
+## Flashing the firmware
 
-1. Kết nối board SaolaH743 với máy tính qua cổng USB Type-C.
-2. Mở ứng dụng **INAV Configurator**.
-3. Chuyển sang tab **Firmware Flasher** ở menu bên trái.
-4. Bấm **Load firmware [Local]** và chọn tệp `inav_SaolaH743.hex` vừa được tạo.
-5. Bấm **Flash Firmware** để bắt đầu nạp.
-   *(Nếu đây là board trắng, bạn cần giữ nút **BOOT** trong lúc cắm USB để vào chế độ DFU)*.
+1. Connect the SaolaH743 board to the computer over USB Type-C.
+2. Open **INAV Configurator**.
+3. Go to the **Firmware Flasher** tab in the left-hand menu.
+4. Click **Load firmware [Local]** and select the `inav_SaolaH743.hex` file you built.
+5. Click **Flash Firmware** to start flashing.
+   *(If this is a blank board, hold the **BOOT** button while plugging in USB to enter DFU mode.)*

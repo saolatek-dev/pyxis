@@ -1,50 +1,50 @@
 # PX4 — Saolatek SAOLAH743
 
-Port PX4 cho board bay SAOLAH743 (STM32H743VIT6, flash 2 MB).
+PX4 port for the SAOLAH743 flight controller (STM32H743VIT6, 2 MB flash).
 
-## Nội dung thư mục
+## Contents
 
-| Đường dẫn | Mô tả |
+| Path | Description |
 |---|---|
-| `build-guided.md` | Hướng dẫn build firmware từ source |
-| `flash-guided.md` | Hướng dẫn nạp firmware lên board |
-| `SOURCE.md` | Ghim commit upstream + danh sách thay đổi (dùng cho release) |
-| `boards/saolah743/h743/` | Board port PX4 (25 file) |
-| `src/drivers/barometer/dps368/` | Driver baro Infineon DPS368 (tự viết) |
-| `patches/upstream-changes.patch` | Sửa đổi cần áp vào 3 file PX4 gốc |
+| `build-guided.md` | How to build the firmware from source |
+| `flash-guided.md` | How to flash the firmware to the board |
+| `SOURCE.md` | Pins the upstream commit and lists our changes (used for releases) |
+| `boards/saolah743/h743/` | PX4 board port (25 files) |
+| `src/drivers/barometer/dps368/` | Infineon DPS368 barometer driver (written by us) |
+| `patches/upstream-changes.patch` | Changes to apply to 3 original PX4 files |
 | `LICENSE` | BSD 3-Clause |
 
-## Firmware dựng sẵn
+## Prebuilt firmware
 
-Không muốn tự build thì tải ở **[Releases](../../releases)** — chọn tag có tiền tố `PX4-`.
+If you don't want to build it yourself, download it from **[Releases](../../releases)** — pick a tag with the `PX4-` prefix.
 
-Mỗi release gồm:
+Each release contains:
 
-| File | Dùng khi nào |
+| File | When to use it |
 |---|---|
-| `*_factory.hex` / `.bin` | **Board mới/trống** — gộp sẵn bootloader + firmware, nạp một phát là chạy |
-| `*.px4` | Board **đã có** bootloader PX4 — cập nhật qua QGroundControl |
-| `saolah743_h743_bootloader.bin` | Chỉ nạp riêng bootloader |
+| `*_factory.hex` / `.bin` | **New/blank board** — bootloader and firmware combined, flash once and it runs |
+| `*.px4` | Board **already has** the PX4 bootloader — update through QGroundControl |
+| `saolah743_h743_bootloader.bin` | Flash the bootloader on its own |
 
-Hai biến thể theo cảm biến áp suất gắn trên board:
+Two variants, depending on the barometer fitted to the board:
 
-- `default` → baro **DPS310**
-- `dps368` → baro **DPS368**
+- `default` → **DPS310** barometer
+- `dps368` → **DPS368** barometer
 
-Cảm biến IMU **không cần chọn** — cả hai bản tự dò BMI088/BMI270 lúc khởi động, nên dùng chung được cho board 1 IMU lẫn board 2 IMU.
+The IMU **does not need to be chosen** — both builds detect BMI088/BMI270 at boot, so the same firmware works on 1-IMU and 2-IMU boards.
 
-## Thông số định danh
+## Identifiers
 
 | | |
 |---|---|
-| Board ID | `6130` (bootloader và firmware phải khớp nhau) |
+| Board ID | `6130` (bootloader and firmware must match) |
 | USB VID:PID | `0x1209:0x7743` |
 | Bootloader | `0x08000000`, 128 KiB |
-| Firmware | `0x08020000`, tối đa 1792 KiB |
-| Tham số | sector 15, `0x081E0000` |
+| Firmware | `0x08020000`, up to 1792 KiB |
+| Parameters | sector 15, `0x081E0000` |
 
-## Giấy phép
+## License
 
-PX4-Autopilot dùng **BSD 3-Clause**. Port này là tác phẩm phái sinh nên cũng theo BSD 3-Clause — xem [LICENSE](LICENSE). Các file giữ nguyên dòng bản quyền của PX4 Development Team.
+PX4-Autopilot uses **BSD 3-Clause**. This port is a derivative work and is therefore also BSD 3-Clause — see [LICENSE](LICENSE). Files keep the original PX4 Development Team copyright lines.
 
-> Lưu ý: khác với ArduPilot/Betaflight/INAV trong repo này (đều là **GPLv3**). Không sao chép mã giữa hai vùng — code GPL lọt vào thư mục `PX4/` sẽ buộc toàn bộ port này thành GPLv3.
+> Note: this differs from ArduPilot/Betaflight/INAV in this repository (all **GPLv3**). Do not copy code between the two — GPL code that ends up in the `PX4/` directory would force this whole port to become GPLv3.

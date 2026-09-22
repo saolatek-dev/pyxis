@@ -1,43 +1,44 @@
 # SOURCE — PX4 SAOLAH743
 
-File này cho biết firmware trong release được dựng từ đâu, để bất kỳ ai
-cũng tái tạo lại được đúng binary. **Kèm file này vào mỗi release.**
+This file states what the released firmware was built from, so that anyone
+can reproduce the exact binaries. **Include this file in every release.**
 
 ## Upstream
 
 ```
-Dự án:  PX4-Autopilot
-URL:    https://github.com/PX4/PX4-Autopilot
-Commit: efd05431e8426d5a788ad814946bfba2f5da893e
-Ngày:   2026-04-26
+Project: PX4-Autopilot
+URL:     https://github.com/PX4/PX4-Autopilot
+Commit:  efd05431e8426d5a788ad814946bfba2f5da893e
+Date:    2026-04-26
 ```
 
-Phải dùng **đúng commit này**. Ghi "PX4 v1.17" là không đủ — không xác định
-được duy nhất một cây mã.
+You must use **exactly this commit**. Writing "PX4 v1.17" is not enough — it
+does not identify a unique source tree.
 
-## Thay đổi của Saolatek
+## Saolatek changes
 
-### Thêm mới
+### Added
 
-| Đường dẫn trong cây PX4 | Nguồn trong repo này |
+| Path in the PX4 tree | Source in this repository |
 |---|---|
 | `boards/saolah743/h743/` | `PX4/boards/saolah743/h743/` |
 | `src/drivers/barometer/dps368/` | `PX4/src/drivers/barometer/dps368/` |
 
-### Sửa file PX4 gốc
+### Changes to original PX4 files
 
-Áp `PX4/patches/upstream-changes.patch`, gồm 3 file:
+Apply `PX4/patches/upstream-changes.patch`, which touches 3 files:
 
-| File | Thay đổi |
+| File | Change |
 |---|---|
 | `src/drivers/barometer/CMakeLists.txt` | `+add_subdirectory(dps368)` |
 | `src/drivers/drv_sensor.h` | `+#define DRV_BARO_DEVTYPE_DPS368 0x64` |
-| `src/drivers/barometer/dps310/DPS310.cpp` | Thử lại 5 lần khi đọc Product ID (một lần đọc I2C lỗi để lại `buf = 0`, trông y hệt "Product_ID mismatch" lúc boot); đếm `comm errors` khi `read()` fail thay vì nuốt im lặng |
+| `src/drivers/barometer/dps310/DPS310.cpp` | Retry the Product ID read up to 5 times (a single failed I2C read leaves `buf = 0`, which looks exactly like "Product_ID mismatch" at boot); count `comm errors` when `read()` fails instead of swallowing it silently |
 
-**Thiếu 2 dòng đầu thì driver DPS368 không được biên dịch vào firmware** —
-build vẫn chạy nhưng baro DPS368 im lặng, rất khó truy.
+**Without the first 2 lines, the DPS368 driver is not compiled into the
+firmware** — the build still succeeds but the DPS368 barometer stays silent,
+which is very hard to trace.
 
-## Dựng lại
+## Rebuilding
 
 ```bash
 git clone https://github.com/PX4/PX4-Autopilot.git
@@ -45,17 +46,17 @@ cd PX4-Autopilot
 git checkout efd05431e8426d5a788ad814946bfba2f5da893e
 git submodule update --init --recursive
 
-PYXIS=/duong/dan/toi/pyxis
+PYXIS=/path/to/pyxis
 cp -r "$PYXIS/PX4/boards/saolah743"            boards/
 cp -r "$PYXIS/PX4/src/drivers/barometer/dps368" src/drivers/barometer/
 git apply "$PYXIS/PX4/patches/upstream-changes.patch"
 
-make saolah743_h743            # baro DPS310
-make saolah743_h743_dps368     # baro DPS368
+make saolah743_h743            # DPS310 barometer
+make saolah743_h743_dps368     # DPS368 barometer
 make saolah743_h743_bootloader # bootloader
 ```
 
-Gộp ảnh factory (bootloader + firmware vào một file):
+Combine the factory image (bootloader + firmware in one file):
 
 ```bash
 python3 - <<'EOF'
@@ -67,7 +68,7 @@ arm-none-eabi-objcopy -I binary -O ihex --change-addresses 0x08000000 \
   factory.bin factory.hex
 ```
 
-## Checksum các file trong release
+## Checksums of the release files
 
 ```
 MD5                               Bytes     File
@@ -80,9 +81,9 @@ MD5                               Bytes     File
 264b0341973f4238482e453ac10ca988  1548318   saolah743_h743_dps368.px4
 ```
 
-Kiểm tra sau khi tải: `md5sum -c` hoặc `md5sum <file>` rồi đối chiếu.
+After downloading, check with `md5sum -c`, or run `md5sum <file>` and compare.
 
-## Giấy phép
+## License
 
-PX4-Autopilot: **BSD 3-Clause**. Các file phái sinh giữ nguyên dòng bản
-quyền của PX4 Development Team. Xem `PX4/LICENSE`.
+PX4-Autopilot: **BSD 3-Clause**. Derived files keep the PX4 Development Team
+copyright lines. See `PX4/LICENSE`.

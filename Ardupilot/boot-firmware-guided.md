@@ -1,7 +1,7 @@
-# Hướng dẫn nạp firmware cho FC
-* Phải vào DFU mode trên FC: nhấn giữ nút boot sau đó vào chế độ DFU
-* Với Stm32 mới sản xuất cần nạp bootloader trước, sau đó nạp firmware sau.
-* Lưu ý: phải trỏ đến đúng thư mục, bắt buộc nạp bằng ubuntu 24.
+# Flashing firmware to the FC
+* Put the FC into DFU mode: press and hold the BOOT button, then enter DFU mode.
+* A newly manufactured STM32 needs the bootloader flashed first, then the firmware.
+* Note: you must point to the correct directory, and flashing must be done on Ubuntu 24.
 
 ```bash
 cd arupilot

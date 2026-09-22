@@ -1,8 +1,8 @@
-# Hướng dẫn build firmware PX4 cho SAOLAH743
+# Building PX4 firmware for the SAOLAH743
 
-Không muốn tự build thì tải bản dựng sẵn ở **[Releases](../../releases)** (tag `PX4-*`) và xem [flash-guided.md](flash-guided.md).
+If you don't want to build it yourself, download a prebuilt release from **[Releases](../../releases)** (tag `PX4-*`) and see [flash-guided.md](flash-guided.md).
 
-## 1. Cài môi trường
+## 1. Install the environment
 
 ```bash
 sudo apt update
@@ -10,7 +10,7 @@ sudo apt install git python3-pip cmake ninja-build \
                  gcc-arm-none-eabi binutils-arm-none-eabi
 ```
 
-## 2. Lấy source PX4 đúng phiên bản
+## 2. Get the right version of the PX4 source
 
 ```bash
 git clone https://github.com/PX4/PX4-Autopilot.git
@@ -19,11 +19,11 @@ git checkout efd05431e8426d5a788ad814946bfba2f5da893e
 git submodule update --init --recursive
 ```
 
-Phải đúng commit này. Bản khác có thể không build được với port hiện tại.
+It must be this exact commit. Other versions may not build with the current port.
 
-## 3. Áp port SAOLAH743
+## 3. Apply the SAOLAH743 port
 
-Giả sử repo `pyxis` nằm ở `~/pyxis`:
+Assuming the `pyxis` repository is at `~/pyxis`:
 
 ```bash
 PYXIS=~/pyxis
@@ -33,43 +33,44 @@ cp -r "$PYXIS/PX4/src/drivers/barometer/dps368"  src/drivers/barometer/
 git apply "$PYXIS/PX4/patches/upstream-changes.patch"
 ```
 
-**Bước `git apply` là bắt buộc.** Patch thêm 2 dòng để driver DPS368 được
-biên dịch vào firmware. Bỏ qua thì build vẫn chạy, nhưng baro DPS368 sẽ
-không hoạt động và rất khó tìm ra nguyên nhân.
+**The `git apply` step is mandatory.** The patch adds the 2 lines that get the
+DPS368 driver compiled into the firmware. If you skip it the build still
+succeeds, but the DPS368 barometer will not work and the cause is very hard
+to find.
 
 ## 4. Build
 
-Chọn theo cảm biến áp suất gắn trên board:
+Choose according to the barometer fitted to the board:
 
 ```bash
-make saolah743_h743            # baro DPS310
-make saolah743_h743_dps368     # baro DPS368
+make saolah743_h743            # DPS310 barometer
+make saolah743_h743_dps368     # DPS368 barometer
 ```
 
-IMU không cần chọn — cả hai bản tự dò BMI088/BMI270 lúc khởi động.
+The IMU does not need to be chosen — both builds detect BMI088/BMI270 at boot.
 
-Kết quả:
+Output:
 
 ```
 build/saolah743_h743_default/saolah743_h743_default.px4
 build/saolah743_h743_dps368/saolah743_h743_dps368.px4
 ```
 
-File `.px4` nạp qua QGroundControl, với điều kiện board **đã có sẵn**
-bootloader PX4.
+The `.px4` file is flashed through QGroundControl, provided the board
+**already has** the PX4 bootloader.
 
-## 5. Build bootloader (chỉ khi cần)
+## 5. Build the bootloader (only when needed)
 
 ```bash
 make saolah743_h743_bootloader
 ```
 
-Kết quả ghi đè vào `boards/saolah743/h743/extras/saolah743_h743_bootloader.bin`
-(CMake tự làm việc này).
+The result overwrites `boards/saolah743/h743/extras/saolah743_h743_bootloader.bin`
+(CMake does this automatically).
 
-## 6. Gộp ảnh factory (tuỳ chọn)
+## 6. Combine a factory image (optional)
 
-Dùng cho board mới/trống — một file chứa cả bootloader lẫn firmware:
+For new/blank boards — one file containing both the bootloader and the firmware:
 
 ```bash
 python3 - <<'EOF'
@@ -83,20 +84,20 @@ arm-none-eabi-objcopy -I binary -O ihex --change-addresses 0x08000000 \
   factory.bin factory.hex
 ```
 
-File `.hex` mang sẵn địa chỉ nên STM32CubeProgrammer không cần nhập Start Address.
+The `.hex` file carries its own addresses, so STM32CubeProgrammer does not need a Start Address.
 
-## Xử lý sự cố
+## Troubleshooting
 
-**Lỗi CMake/Kconfig lạ** (ví dụ `redefinition of 'get_latency'`, hoặc thiếu
-file `Kconfig` trong `platforms/nuttx/NuttX/apps/...`): thường do cache
-CMake hỏng.
+**Strange CMake/Kconfig errors** (for example `redefinition of 'get_latency'`,
+or a missing `Kconfig` file under `platforms/nuttx/NuttX/apps/...`): usually a
+corrupted CMake cache.
 
 ```bash
 rm -rf build/saolah743_h743_<config>
 make saolah743_h743_<config>
 ```
 
-**Build xong nhưng baro DPS368 không hoạt động**: gần như chắc chắn quên
-bước `git apply` ở mục 3.
+**The build succeeds but the DPS368 barometer doesn't work**: almost certainly
+the `git apply` step in section 3 was skipped.
 
-**Cảnh báo flash gần đầy**: bình thường. Firmware hiện dùng ~89% của 1792 KiB.
+**Flash nearly full warning**: normal. The firmware currently uses ~89% of 1792 KiB.

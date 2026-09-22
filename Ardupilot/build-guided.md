@@ -1,36 +1,35 @@
-# Hướng dẫn build firmware ArduPilot cho FC H743VIT Saolatek
+# Building ArduPilot firmware for the Saolatek H743VIT FC
 
-> **Lưu ý:** Bắt buộc build trên Ubuntu 24.04. Có thể sử dụng WSL thay thế.
+> **Note:** Building requires Ubuntu 24.04. WSL can be used instead.
 
-## Clone source code ArduPilot về máy
+## Clone the ArduPilot source code
 
 ```bash
 git clone https://github.com/ArduPilot/ardupilot.git
 ```
 
-## Thiết lập môi trường build
+## Set up the build environment
 
 ```bash
 cd ardupilot
 ```
-## Cập nhật submodule:
+## Update the submodules:
 ```bash
 git submodule update --init --recursive
 ```
-## Chạy script cài đặt các package cần thiết cho môi trường build:
+## Run the script that installs the packages required by the build environment:
 ```bash
 Tools/environment_install/install-prereqs-ubuntu.sh -y
 ```
-## Sau khi cài đặt hoàn tất, nạp lại biến môi trường:
+## When installation finishes, reload the environment variables:
 ```bash
 source ~/.profile
 ```
-## Kiểm tra công cụ build đã được cài đặt thành công:
+## Check that the build tool installed correctly:
 ```bash
 ./waf --version
 ```
-# Khái quát về cách build firmwave từ Ardupilot
-Để build cần khai báo sơ đồ phần cứng và bộ bootloader, sẽ gồm 2 file:
+# Overview of building firmware from ArduPilot
+A build needs a description of the hardware and of the bootloader, in 2 files:
 * hwdef.dat
 * bl-hwdef.dat
-
