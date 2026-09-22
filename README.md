@@ -19,7 +19,9 @@ Pyxis is a 36 × 36 mm flight controller built around the STM32H743VIT6. It is a
 - A complete PX4 board port, including a driver for the DPS368 barometer.
 - The pin map, connector drawings and board schematic.
 
-In firmware sources and build commands the board is identified as **`SaolaH743`**.
+In firmware sources and build commands the board is identified as
+**`SaolaH743`**, except in PX4, where the build targets are
+**`saolah743_h743`** and **`saolah743_h743_dps368`**.
 
 | Firmware | Provided | Build system |
 | --- | --- | --- |
@@ -73,12 +75,12 @@ In firmware sources and build commands the board is identified as **`SaolaH743`*
 
 ### Software
 
-| | ArduPilot | INAV | Betaflight |
-| --- | --- | --- | --- |
-| Host OS | Ubuntu 24.04 or WSL2 | Ubuntu or WSL2 | Ubuntu or WSL2 |
-| Toolchain | Installed by ArduPilot's setup script | `gcc-arm-none-eabi`, `cmake`, `make` | `gcc-arm-none-eabi`, `make`, or Docker |
-| Flashing | `dfu-util` | INAV Configurator | Betaflight Configurator or `dfu-util` |
-| Ground station | Mission Planner or QGroundControl | INAV Configurator | Betaflight Configurator |
+| | ArduPilot | INAV | Betaflight | PX4 |
+| --- | --- | --- | --- | --- |
+| Host OS | Ubuntu 24.04 or WSL2 | Ubuntu or WSL2 | Ubuntu or WSL2 | Ubuntu 24.04 or WSL2 |
+| Toolchain | Installed by ArduPilot's setup script | `gcc-arm-none-eabi`, `cmake`, `make` | `gcc-arm-none-eabi`, `make`, or Docker | `gcc-arm-none-eabi`, `cmake`, `ninja-build` |
+| Flashing | `dfu-util` | INAV Configurator | Betaflight Configurator or `dfu-util` | STM32CubeProgrammer, `dfu-util` or INAV Configurator for the factory image; QGroundControl for updates |
+| Ground station | Mission Planner or QGroundControl | INAV Configurator | Betaflight Configurator | QGroundControl |
 
 ## Quick start
 
