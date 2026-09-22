@@ -1,11 +1,11 @@
 # Pyxis FC
 
 ![MCU](https://img.shields.io/badge/MCU-STM32H743VIT6-03234b?style=flat-square)
-![Targets](https://img.shields.io/badge/targets-ArduPilot%20%7C%20INAV%20%7C%20Betaflight-4c6b8a?style=flat-square)
+![Targets](https://img.shields.io/badge/targets-ArduPilot%20%7C%20INAV%20%7C%20Betaflight%20%7C%20PX4-4c6b8a?style=flat-square)
 ![Build host](https://img.shields.io/badge/build%20host-Ubuntu%2024.04%20%2F%20WSL2-555?style=flat-square)
-![License](https://img.shields.io/badge/license-TBD-lightgrey?style=flat-square)
+![License](https://img.shields.io/badge/license-GPL--3.0%20%7C%20BSD--3--Clause-4c6b8a?style=flat-square)
 
-Board support files, build guides and flashing procedures for the **Pyxis** flight controller by Saolatek, covering ArduPilot, INAV and Betaflight.
+Board support files, build guides and flashing procedures for the **Pyxis** flight controller by Saolatek, covering ArduPilot, INAV, Betaflight and PX4.
 
 ![Pyxis FC, an STM32H743 flight controller for professional UAV work](Docs/images/hero.jpg)
 
@@ -16,6 +16,7 @@ Pyxis is a 36 × 36 mm flight controller built around the STM32H743VIT6. It is a
 - An ArduPilot hardware definition with build and flash guides.
 - A drop-in INAV target.
 - A Betaflight porting guide.
+- A complete PX4 board port, including a driver for the DPS368 barometer.
 - The pin map, connector drawings and board schematic.
 
 In firmware sources and build commands the board is identified as **`SaolaH743`**.
@@ -25,7 +26,7 @@ In firmware sources and build commands the board is identified as **`SaolaH743`*
 | ArduPilot (ArduCopter) | Hardware definition | waf |
 | INAV | Target source | CMake |
 | Betaflight | Porting guide | make |
-| PX4 | Not yet available | — |
+| PX4 | Board port and DPS368 driver | CMake |
 
 ## Key features
 
@@ -57,7 +58,7 @@ In firmware sources and build commands the board is identified as **`SaolaH743`*
 | Weight | 10 g |
 
 > [!NOTE]
-> The product spec sheet lists a DPS368 barometer. The firmware definitions in this repository are written for the DPS310. Confirm which part is fitted to your board.
+> Boards ship with either a DPS310 or a DPS368 barometer. Confirm which part is fitted to yours. The ArduPilot, INAV and Betaflight definitions here are written for the DPS310; the PX4 port builds both variants (`saolah743_h743` for DPS310, `saolah743_h743_dps368` for DPS368).
 
 ## Prerequisites
 
@@ -88,6 +89,12 @@ In firmware sources and build commands the board is identified as **`SaolaH743`*
 | ArduPilot | [Build](Ardupilot/build-guided.md), then [flash](Ardupilot/boot-firmware-guided.md) |
 | INAV | [Build and flash](Inav/Build-guided.md) |
 | Betaflight | [Port, build and flash](BetaFlight/guide.md) |
+| PX4 | [Build](PX4/build-guided.md), then [flash](PX4/flash-guided.md) |
+
+Prebuilt firmware is published under [Releases](../../releases), tagged by
+firmware prefix: `Ardupilot-*`, `BetaFlight-*`, `Inav-*`, `PX4-*`. Each
+release carries the `SOURCE.md` for that build, pinning the upstream commit
+and listing checksums.
 
 **2. Enter DFU mode.**
 
@@ -128,10 +135,28 @@ The MCU pin for every function is listed in the [pin map](Docs/pinout.md).
 
 ## License
 
-<!-- TODO: select a license and add a LICENSE file at the repository root. -->
-Not yet determined. Until a `LICENSE` file is added, all rights are reserved.
+The four firmware directories are **four separate programs**. Each inherits
+the license of its upstream project, so licensing applies **per directory**.
+There is no repository-wide license.
 
-ArduPilot, INAV and Betaflight are licensed under GPL-3.0. Firmware built from them is subject to those terms.
+| Directory | Upstream | License |
+| --- | --- | --- |
+| [`Ardupilot/`](Ardupilot/) | ArduPilot | [GPL-3.0-or-later](Ardupilot/LICENSE) |
+| [`BetaFlight/`](BetaFlight/) | Betaflight | [GPL-3.0-or-later](BetaFlight/LICENSE) |
+| [`Inav/`](Inav/) | INAV | [GPL-3.0-or-later](Inav/LICENSE) |
+| [`PX4/`](PX4/) | PX4-Autopilot | [BSD-3-Clause](PX4/LICENSE) |
+
+Aggregating GPL and BSD programs in one repository is permitted under the
+*mere aggregation* provision of GPLv3 section 5. Code must not be copied
+between directories: GPL code moved into `PX4/` would place that port under
+GPLv3 irreversibly.
+
+See [COMPLIANCE.md](COMPLIANCE.md) for source availability, the written offer
+for pre-installed firmware, and trademark usage.
+
+"ArduPilot", "Betaflight", "INAV" and "PX4" are marks of their respective
+projects. Pyxis is compatible with them; it is not affiliated with or endorsed
+by them.
 
 ## Contact
 
