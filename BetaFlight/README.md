@@ -9,7 +9,7 @@ Betaflight port for the Pyxis (SAOLAH743) flight controller (STM32H743VIT6, 2 MB
 | `build-guided.md` | How to build the firmware from source |
 | `flash-guided.md` | How to flash the firmware to the board |
 | `SOURCE.md` | Pins the upstream commits and lists our changes (used for releases) |
-| `configs/CUST/SAOLAH743_BMI270/config.h` | Board config, **BMI270-only** boards (the released build) |
+| `configs/CUST/SAOLAH743_BMI270/config.h` | Board config, **BMI270-only** boards |
 | `configs/CUST/SAOLAH743/config.h` | Board config, boards with **BMI088 + BMI270** on SPI2 |
 | `patches/upstream-changes.patch` | Changes to 5 original Betaflight files (BMI270 driver, CLI) |
 | `LICENSE` | GPL-3.0-or-later |
@@ -34,11 +34,11 @@ Download from **[Releases](../../../releases)**. Pick the newest tag with the `B
 
 | File | Tool |
 |---|---|
-| `betaflight_<version>_STM32H743_SAOLAH743_BMI270.hex` | Betaflight Configurator, STM32CubeProgrammer |
-| `betaflight_<version>_STM32H743_SAOLAH743_BMI270.dfu` | `dfu-util` |
+| `betaflight_<version>_STM32H743_<variant>.hex` | Betaflight Configurator, STM32CubeProgrammer |
+| `betaflight_<version>_STM32H743_<variant>.dfu` | `dfu-util` |
 
-Only the `SAOLAH743_BMI270` variant is released. Build `SAOLAH743` yourself
-if your board carries a BMI088.
+Both variants are released. Use `SAOLAH743_BMI270` for a BMI270-only board
+and `SAOLAH743` for a board that also carries a BMI088.
 
 ## Hardware summary
 

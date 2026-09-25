@@ -69,52 +69,68 @@ cd betaflight
 git checkout 80b0bceb2f1231896c763cb04919f44007fe2e11
 git submodule update --init src/config
 git -C src/config checkout 036eaa86f69cd24d34c05dcdeb7a005e59c7ca29
+make arm_sdk_install                   # Arm GNU Toolchain 13.3.rel1
 
 PYXIS=/path/to/pyxis
+git -C "$PYXIS" checkout 3e03018        # source of the released files
+cp -r "$PYXIS/BetaFlight/configs/CUST/SAOLAH743"        src/config/configs/CUST/
 cp -r "$PYXIS/BetaFlight/configs/CUST/SAOLAH743_BMI270" src/config/configs/CUST/
 git apply "$PYXIS/BetaFlight/patches/upstream-changes.patch"
 
-# Fix the embedded build date to that of the release (2026-09-15 03:09:27 UTC)
-export SOURCE_DATE_EPOCH=1789441767
-make CONFIG=SAOLAH743_BMI270
-make CONFIG=SAOLAH743_BMI270 obj/betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
+# Fix the embedded build date to that of each released file (UTC)
+SOURCE_DATE_EPOCH=1790309130 make CONFIG=SAOLAH743_BMI270        # 2026-09-25 04:05:30
+SOURCE_DATE_EPOCH=1790309130 make CONFIG=SAOLAH743_BMI270 \
+  obj/betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
+SOURCE_DATE_EPOCH=1790309156 make CONFIG=SAOLAH743               # 2026-09-25 04:05:56
+SOURCE_DATE_EPOCH=1790309156 make CONFIG=SAOLAH743 \
+  obj/betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
 ```
 
-These commands build the **current** configs. To reproduce release
-`BetaFlight-v0.0.2` byte for byte, take the config from this repository at
-commit `83ee3b7` instead
-(`git -C "$PYXIS" show 83ee3b7:BetaFlight/configs/CUST/SAOLAH743_BMI270/config.h`)
-and keep `SOURCE_DATE_EPOCH`. With those, the `.hex` and `.dfu` in `obj/`
-were verified **byte-identical** to the released files using
-`arm-none-eabi-gcc` 13.2.1 (`13.2.rel1`).
+With these commands the `.hex` and `.dfu` files in `obj/` are
+**byte-identical** to the released files. This was verified on 2026-09-25
+with `arm-none-eabi-gcc` 13.3.1 (`13.3.rel1`, installed by
+`make arm_sdk_install`). Without `SOURCE_DATE_EPOCH`, only the embedded
+build date and time differ.
 
 Build instructions in detail: [build-guided.md](build-guided.md).
 
 ## Released artifacts
 
 Release [`BetaFlight-v0.0.2`](../../../releases/tag/BetaFlight-v0.0.2),
-archive `bmi270.zip`, built 2026-09-15.
+archive `BetaFlight-SAOLAH743.zip`, built 2026-09-25 from this repository
+at commit `3e03018`. The release tag itself points at an older commit
+(`04d009c`); the commit given here is the authoritative source.
 
 ```
 MD5                               Bytes     File
-708adc45278747c8b02ed081080c7871   993836   bmi270.zip
-bd94d9c090c44d43284c4f5ee073b50e   596194   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
-f78f00c6cbeb17eef0406f257e88b593  1676186  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.hex
+5006a47256bfa62ec3ddb266208a6935  2137741   BetaFlight-SAOLAH743.zip
+35e2213cc816b07e6935e52b96c377fd   596194   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
+374b80ecad25f8bbeea433d2663ddf4e  1676186   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.hex
+cffc5b40e8cfbcd2322915a769c159ab   599170   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
+89c3cb6f2dd9b327b848f69756da94fc  1684543   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.hex
 ```
 
-Verify a download with `md5sum <file>` and compare against the table.
+```
+SHA-256                                                           File
+5e3ef11e95dcb902ac0f2b0921567766f3ea9e0918f8bd73bccf089d87576f69  BetaFlight-SAOLAH743.zip
+5f21f100130abe725592549f8c633c54c607ca034b382a3b8c7a64837e11fce9  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
+441fced7d5ffa22f234d090682f0b18b9c46dbd6a505290bf8bf800dfceb716f  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.hex
+3ba72254fd2b3ea58d108b9e47ba548381ed635f605e164771b82cfd4152b788  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
+9214b89e590874cf6d62de3a60cbf62b081dcdfa577cd2b60e3bff180df1a2a0  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.hex
+```
 
-> [!WARNING]
-> This release was built from the configs as they were before 2026-09-25,
-> when four definitions were corrected to match the schematic: OSD chip
-> select `PB12` → `PD11`, `DEFAULT_VOLTAGE_METER_SCALE` 213 → 110, and the
-> unused `INVERTER_PIN_UART6 PD0` and `UART7_TX_PIN PE8` removed. Those
-> configs are in this repository's history at commit `83ee3b7`. Rebuilding
-> from the current files does **not** reproduce these checksums; with the
-> released firmware the OSD does not work and the battery voltage reads about
-> twice the real value (fix with `set vbat_scale = 110`).
+Verify a download with `md5sum <file>` or `sha256sum <file>` and compare
+against the tables. GitHub also shows the SHA-256 of the zip next to the
+asset.
 
-The `SAOLAH743` (BMI088 + BMI270) variant has not been released.
+### Previously published assets
+
+Until 2026-09-25 this release carried `bmi270.zip`
+(MD5 `708adc45278747c8b02ed081080c7871`), built 2026-09-15 from the configs
+at commit `83ee3b7` with `SOURCE_DATE_EPOCH=1789441767`. That firmware has
+the OSD chip select on `PB12` instead of `PD11` (the OSD does not work) and
+a voltage scale of 213 instead of 110 (battery voltage reads about twice
+the real value). It has been replaced by the files above.
 
 ## License
 

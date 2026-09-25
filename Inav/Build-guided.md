@@ -1,7 +1,8 @@
 # Building INAV firmware for the Pyxis FC (SAOLA_H743)
 
-INAV has no prebuilt release for this board yet, so the firmware must be
-built from source.
+If you don't want to build it yourself, download `Inav-SAOLA_H743.zip` from
+**[Releases](../../../releases)** (tag `Inav-*`), extract it, check the file
+against [SOURCE.md](SOURCE.md#released-artifacts) and go to step 5.
 
 ## 1. Install the tools
 

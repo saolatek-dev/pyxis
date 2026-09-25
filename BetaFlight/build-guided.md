@@ -34,9 +34,9 @@ git submodule update --init src/config
 git -C src/config checkout 036eaa86f69cd24d34c05dcdeb7a005e59c7ca29
 ```
 
-For a byte-identical copy of the release binaries, use the config from this
-repository at commit `83ee3b7` (before the 2026-09-25 pin fixes) and set the
-build date as shown in [SOURCE.md](SOURCE.md#rebuilding).
+For a byte-identical copy of the release binaries, use this repository at
+commit `3e03018`, the Arm toolchain from `make arm_sdk_install`, and the
+build dates shown in [SOURCE.md](SOURCE.md#rebuilding).
 
 ### Build on a newer Betaflight
 
@@ -75,7 +75,7 @@ See [SOURCE.md](SOURCE.md) for what each change does.
 Pick the variant for your board (see [README.md](README.md#two-variants)):
 
 ```bash
-make -j$(nproc) CONFIG=SAOLAH743_BMI270   # BMI270-only board (released build)
+make -j$(nproc) CONFIG=SAOLAH743_BMI270   # BMI270-only board
 make -j$(nproc) CONFIG=SAOLAH743          # BMI088 + BMI270 board
 ```
 

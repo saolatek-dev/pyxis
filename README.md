@@ -86,7 +86,7 @@ In firmware sources and build commands the board is identified as
 
 **1. Get the firmware.** The easiest way is to download a prebuilt file from
 [Releases](../../releases). Pick the newest tag for your flight stack
-(`Ardupilot-*`, `BetaFlight-*`, `PX4-*`) and extract the zip if there is one.
+(`Ardupilot-*`, `BetaFlight-*`, `Inav-*`, `PX4-*`) and extract the zip if there is one.
 
 For a new board, or one running a different flight stack, use the file listed
 below. It includes everything the board needs to boot.
@@ -94,19 +94,20 @@ below. It includes everything the board needs to boot.
 | Firmware | File for a new board | Variant to check | Flashing guide |
 | --- | --- | --- | --- |
 | ArduPilot | `arducopter_with_bl.bin` / `.hex` | DPS310 barometer only | [Flash](Ardupilot/boot-firmware-guided.md) |
-| Betaflight | `betaflight_*_SAOLAH743_BMI270.hex` / `.dfu` | BMI270 IMU only | [Flash](BetaFlight/flash-guided.md) |
+| Betaflight | `betaflight_*_SAOLAH743_BMI270.hex` / `.dfu` or `betaflight_*_SAOLAH743.hex` / `.dfu` | `SAOLAH743_BMI270` = BMI270 only, `SAOLAH743` = BMI088 + BMI270 | [Flash](BetaFlight/flash-guided.md) |
+| INAV | `inav_*_SAOLA_H743.hex` | None (BMI088/BMI270 and DPS310/DPS368 detected at boot) | [Flash](Inav/Build-guided.md#5-flash) |
 | PX4 | `saolah743_h743_<variant>_factory.hex` / `.bin` | `default` = DPS310, `dps368` = DPS368 | [Flash](PX4/flash-guided.md) |
 
 Use `.hex` with a graphical tool (Configurator, STM32CubeProgrammer), and
 `.bin` / `.dfu` with `dfu-util`. `dfu-util` cannot read `.hex` files.
 
 Each firmware folder has a `SOURCE.md` that pins the upstream commit and lists
-the MD5 checksum of every released file. Check a download with `md5sum <file>`.
+the checksum of every released file. Check a download with `md5sum <file>`
+(or `sha256sum <file>` where SOURCE.md lists SHA-256).
 
 To build the firmware yourself instead, follow the build guide:
 [ArduPilot](Ardupilot/build-guided.md), [INAV](Inav/Build-guided.md),
-[Betaflight](BetaFlight/build-guided.md), [PX4](PX4/build-guided.md). INAV has no
-prebuilt release yet, so it must be built from source.
+[Betaflight](BetaFlight/build-guided.md), [PX4](PX4/build-guided.md).
 
 **2. Set up your computer** (once): install `dfu-util` and the USB drivers as
 described in [Docs/flashing-setup.md](Docs/flashing-setup.md). On WSL2 the

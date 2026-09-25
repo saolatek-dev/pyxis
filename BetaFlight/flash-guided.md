@@ -8,21 +8,21 @@
 
 **Prebuilt (recommended):** open **[Releases](../../../releases)**, pick the
 newest tag starting with `BetaFlight-`, download the zip (for example
-`bmi270.zip`) and extract it. It contains:
+`BetaFlight-SAOLAH743.zip`) and extract it. It contains:
 
 | File | Tool |
 |---|---|
-| `betaflight_<version>_STM32H743_SAOLAH743_BMI270.hex` | Betaflight Configurator, STM32CubeProgrammer |
-| `betaflight_<version>_STM32H743_SAOLAH743_BMI270.dfu` | dfu-util |
+| `betaflight_<version>_STM32H743_<variant>.hex` | Betaflight Configurator, STM32CubeProgrammer |
+| `betaflight_<version>_STM32H743_<variant>.dfu` | dfu-util |
 
-Optional: check the download with `md5sum <file>` and compare with the table in
+Optional: check the download with `md5sum <file>` or `sha256sum <file>` and compare with the tables in
 [SOURCE.md](SOURCE.md#released-artifacts).
 
 > [!IMPORTANT]
-> The release is the **`SAOLAH743_BMI270`** variant, for boards with only a
-> BMI270. For a board that also carries a BMI088, build `SAOLAH743` yourself
-> ([build-guided.md](build-guided.md)). That variant holds the BMI088 off the
-> SPI bus so it cannot corrupt the BMI270 readings.
+> Pick the variant for your board:
+> - **`SAOLAH743_BMI270`**: boards with only a BMI270.
+> - **`SAOLAH743`**: boards that also carry a BMI088. This variant holds the
+>   BMI088 off the SPI bus so it cannot corrupt the BMI270 readings.
 
 **Built yourself:** the files are in the `obj/` folder of the Betaflight tree.
 
@@ -53,7 +53,7 @@ sudo dfu-util -l    # must list a device with ID 0483:df11 ("STM32 BOOTLOADER")
 **Method 2 — dfu-util (Linux / WSL):** use the **`.dfu`** file. dfu-util cannot read `.hex` files.
 
 ```bash
-sudo dfu-util -a 0 -s :leave -D betaflight_<version>_STM32H743_SAOLAH743_BMI270.dfu
+sudo dfu-util -a 0 -s :leave -D betaflight_<version>_STM32H743_<variant>.dfu
 ```
 
 Wait for `File downloaded successfully`. `-s :leave` restarts the board into

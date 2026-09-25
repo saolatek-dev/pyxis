@@ -52,21 +52,46 @@ cd inav
 git checkout 4939a7ff7cd263b60718080b3655bfae7b589c93
 
 PYXIS=/path/to/pyxis
+git -C "$PYXIS" checkout 3e03018        # source of the released file
 cp -r "$PYXIS/Inav/SAOLA_H743" src/main/target/
 git apply "$PYXIS/Inav/patches/upstream-changes.patch"
 
+# Fix the embedded build date to that of the release (2026-09-25 03:50:18 UTC)
+export SOURCE_DATE_EPOCH=1790308218
 mkdir -p build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make SAOLA_H743          # -> build/inav_<version>_SAOLA_H743.hex
+make SAOLA_H743          # -> build/inav_9.1.0_SAOLA_H743.hex
 ```
+
+With these commands `inav_9.1.0_SAOLA_H743.hex` is **byte-identical** to
+the released file. This was verified on 2026-09-25 with `arm-none-eabi-gcc`
+13.2.1 (`13.2.rel1`, the toolchain INAV installs into `tools/`). Without
+`SOURCE_DATE_EPOCH`, only the embedded build date and time differ.
 
 Build instructions in detail: [Build-guided.md](Build-guided.md).
 
 ## Released artifacts
 
-Release [`Inav-v0.0.3`](../../../releases/tag/Inav-v0.0.3) currently carries
-no binary assets. When firmware is published, record every artifact here with
-its MD5 and size, in the form used by the other firmware directories.
+Release [`Inav-v0.0.3`](../../../releases/tag/Inav-v0.0.3),
+archive `Inav-SAOLA_H743.zip`, built 2026-09-25 from this repository at
+commit `3e03018`. The release tag itself points at an older commit
+(`04d009c`); the commit given here is the authoritative source.
+
+```
+MD5                               Bytes     File
+71b3119dda8cefa1a7ba65f93bad4ddd   715263   Inav-SAOLA_H743.zip
+0213f2a93560392b1771908eecbe9e8e  1804681   inav_9.1.0_SAOLA_H743.hex
+```
+
+```
+SHA-256                                                           File
+2ee2362ff2bb51c1f80c56b8ac5fdaecaa9a3e7e235705e78c657cfcb0dac729  Inav-SAOLA_H743.zip
+6b2e579b4c0a3848d940774aa988d3aa6f96723fa71292052fa6386711fe9f56  inav_9.1.0_SAOLA_H743.hex
+```
+
+Verify a download with `md5sum <file>` or `sha256sum <file>` and compare
+against the tables. GitHub also shows the SHA-256 of the zip next to the
+asset.
 
 ## License
 
