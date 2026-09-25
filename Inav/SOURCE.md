@@ -1,4 +1,4 @@
-# SOURCE — INAV for Pyxis (SaolaH743)
+# SOURCE — INAV for Pyxis (SAOLA_H743)
 
 This file records how INAV firmware for Pyxis is built, so that anyone can
 reproduce it. It satisfies GPLv3 section 6. **Ship it with every release.**
@@ -18,25 +18,31 @@ unique tree.
 
 ```bash
 git checkout 4939a7ff7cd263b60718080b3655bfae7b589c93
-git submodule update --init --recursive
 ```
 
 ## Saolatek changes
 
+### Added
+
 | Path in the INAV tree | Source in this repository |
 | --- | --- |
-| `src/main/target/SaolaH743/target.c` | [`SaolaH743/target.c`](SaolaH743/target.c) |
-| `src/main/target/SaolaH743/target.h` | [`SaolaH743/target.h`](SaolaH743/target.h) |
-| `src/main/target/SaolaH743/CMakeLists.txt` | [`SaolaH743/CMakeLists.txt`](SaolaH743/CMakeLists.txt) |
+| `src/main/target/SAOLA_H743/target.c` | [`SAOLA_H743/target.c`](SAOLA_H743/target.c) |
+| `src/main/target/SAOLA_H743/target.h` | [`SAOLA_H743/target.h`](SAOLA_H743/target.h) |
+| `src/main/target/SAOLA_H743/CMakeLists.txt` | [`SAOLA_H743/CMakeLists.txt`](SAOLA_H743/CMakeLists.txt) |
 
-Each of these files carries a GPLv3 header identifying it as a modified work,
-as required by section 5(a).
+`target.c` and `target.h` carry a GPLv3 header identifying them as a
+modified work, as required by section 5(a).
 
-> [!NOTE]
-> Bringing the board up also required changes to shared INAV driver code
-> (`accgyro_bmi088.c`, `bus_spi_hal_ll.c`, `max7456.c`). Those changes are not
-> yet mirrored into this repository. They must be added here, listed
-> individually and dated, before any INAV binary for this board is released.
+### Changes to original INAV files
+
+Apply [`patches/upstream-changes.patch`](patches/upstream-changes.patch)
+(2026-09-12). It touches 3 files:
+
+| File | Change |
+| --- | --- |
+| `src/main/drivers/max7456.c` | `max7456WaitUntilNoBusy()` and the clear-display wait in `max7456RefreshAll()` now time out after `MAX_RESET_TIMEOUT_MS`. Before, a missing or unresponsive MAX7456/AT7456E made them spin forever and hung the boot (confirmed over SWD). |
+| `src/main/drivers/bus_spi_hal_ll.c` | STM32H7: on a TXP/RXP timeout the SPI peripheral is disabled before returning, and the EOT wait is bounded. Before, an abandoned transfer left the peripheral enabled and the next transfer hung forever. New optional `SPI_SLOW_BUS_STANDARD_DIV16` halves `SPI_CLOCK_STANDARD` on SPI2/3/4 (off for this target). |
+| `src/main/drivers/accgyro/accgyro_bmi088.c` | New optional `BMI088_GYRO_MAX_SPI_SPEED` / `BMI088_ACC_MAX_SPI_SPEED` overrides. Defaults are the upstream values (FAST / STANDARD), so behaviour is unchanged unless a target defines them (this target does not). |
 
 ## Rebuilding
 
@@ -44,14 +50,14 @@ as required by section 5(a).
 git clone https://github.com/iNavFlight/inav.git
 cd inav
 git checkout 4939a7ff7cd263b60718080b3655bfae7b589c93
-git submodule update --init --recursive
 
 PYXIS=/path/to/pyxis
-cp -r "$PYXIS/Inav/SaolaH743" src/main/target/
+cp -r "$PYXIS/Inav/SAOLA_H743" src/main/target/
+git apply "$PYXIS/Inav/patches/upstream-changes.patch"
 
 mkdir -p build && cd build
-cmake ..
-make SaolaH743
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make SAOLA_H743          # -> build/inav_<version>_SAOLA_H743.hex
 ```
 
 Build instructions in detail: [Build-guided.md](Build-guided.md).
@@ -65,7 +71,7 @@ its MD5 and size, in the form used by the other firmware directories.
 ## License
 
 INAV is licensed under **GPL-3.0-or-later**; see [`LICENSE`](LICENSE). Our
-target files are derivative works and carry the same license.
+target files and driver changes are derivative works and carry the same license.
 
 See [`../COMPLIANCE.md`](../COMPLIANCE.md) for the source offer and trademark
 usage.

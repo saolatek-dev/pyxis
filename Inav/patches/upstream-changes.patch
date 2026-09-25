@@ -1,0 +1,165 @@
+diff --git a/src/main/drivers/accgyro/accgyro_bmi088.c b/src/main/drivers/accgyro/accgyro_bmi088.c
+index 7f219f212..8cb8d5185 100644
+--- a/src/main/drivers/accgyro/accgyro_bmi088.c
++++ b/src/main/drivers/accgyro/accgyro_bmi088.c
+@@ -82,6 +82,27 @@
+ #define REGG_FIFO_CONFIG_1 0x3E
+ #define REGG_FIFO_DATA     0x3F
+ 
++// BMI088 gyro datasheet limit: SPI clock max 10 MHz (same cap ArduPilot's
++// hwdef.dat uses for both bmi088_a and bmi088_g on this chip). BUS_SPEED_FAST
++// is DIV4 off the SPI2/3/4 kernel clock; on STM32H7 that kernel clock is
++// PLL1Q (100-120 MHz depending on HSE/rev), so BUS_SPEED_FAST there works out
++// to ~25-30 MHz - 2.5-3x over spec. A target whose H7 clock config puts it in
++// that range should define BMI088_GYRO_MAX_SPI_SPEED to bring it back down
++// (BUS_SPEED_STANDARD, further lowered by SPI_SLOW_BUS_STANDARD_DIV16 if that
++// is also defined, matches the fix already verified for this bus's BMI270).
++#ifndef BMI088_GYRO_MAX_SPI_SPEED
++#define BMI088_GYRO_MAX_SPI_SPEED BUS_SPEED_FAST
++#endif
++
++// spiBusSetSpeed() writes the peripheral's MBR directly instead of storing a
++// per-device rate, and nothing re-applies it per transfer - so the whole SPI
++// instance runs at whatever the last initialised device asked for. bmi088AccInit()
++// runs after bmi088GyroInit(), which makes the acc rate the one that actually
++// governs both halves of the chip. Overriding only the gyro is therefore a no-op
++// (measured: gyro set to FAST still left SPI2_CFG1.MBR at the STANDARD divisor).
++#ifndef BMI088_ACC_MAX_SPI_SPEED
++#define BMI088_ACC_MAX_SPI_SPEED BUS_SPEED_STANDARD
++#endif
+ 
+ static void bmi088GyroInit(gyroDev_t *gyro)
+ {
+@@ -99,7 +120,7 @@ static void bmi088GyroInit(gyroDev_t *gyro)
+     busWrite(gyro->busDev, REGG_INT_CTRL, 0x80);
+     delay(1);
+ 
+-    busSetSpeed(gyro->busDev, BUS_SPEED_FAST);
++    busSetSpeed(gyro->busDev, BMI088_GYRO_MAX_SPI_SPEED);
+ }
+ 
+ static void bmi088AccInit(accDev_t *acc)
+@@ -126,7 +147,7 @@ static void bmi088AccInit(accDev_t *acc)
+     busWrite(acc->busDev, REGA_RANGE, 0x02);
+     delay(1);
+ 
+-    busSetSpeed(acc->busDev, BUS_SPEED_STANDARD);
++    busSetSpeed(acc->busDev, BMI088_ACC_MAX_SPI_SPEED);
+ 
+     acc->acc_1G = 2048;
+ }
+diff --git a/src/main/drivers/bus_spi_hal_ll.c b/src/main/drivers/bus_spi_hal_ll.c
+index ce6fbde95..95ce03be1 100644
+--- a/src/main/drivers/bus_spi_hal_ll.c
++++ b/src/main/drivers/bus_spi_hal_ll.c
+@@ -79,11 +79,20 @@ static const uint32_t spiDivisorMapFast[] = {
+ #endif
+ 
+ #if defined(USE_SPI_DEVICE_2) || defined(USE_SPI_DEVICE_3) || defined(USE_SPI_DEVICE_4)
++// On STM32H7 the SPI2/3/4 kernel clock is PLL1Q (120 MHz at 480 MHz sys_ck), so the
++// rates quoted below are the F7 figures — DIV8 is actually 15 MHz there, which is over
++// the 10 MHz SPI ceiling of parts such as the BMI270. A target whose slow-bus sensors
++// cannot take that may define SPI_SLOW_BUS_STANDARD_DIV16 to halve SPI_CLOCK_STANDARD.
+ static const uint32_t spiDivisorMapSlow[] = {
+     LL_SPI_BAUDRATEPRESCALER_DIV256,    // SPI_CLOCK_INITIALIZATON      210.937 KBits/s
+     LL_SPI_BAUDRATEPRESCALER_DIV64,     // SPI_CLOCK_SLOW               843.75 KBits/s
++#ifdef SPI_SLOW_BUS_STANDARD_DIV16
++    LL_SPI_BAUDRATEPRESCALER_DIV16,     // SPI_CLOCK_STANDARD           kernel/16
++    LL_SPI_BAUDRATEPRESCALER_DIV8,      // SPI_CLOCK_FAST               kernel/8
++#else
+     LL_SPI_BAUDRATEPRESCALER_DIV8,      // SPI_CLOCK_STANDARD           6.75 MBits/s
+     LL_SPI_BAUDRATEPRESCALER_DIV4,      // SPI_CLOCK_FAST               13.5 MBits/s
++#endif
+     LL_SPI_BAUDRATEPRESCALER_DIV2       // SPI_CLOCK_ULTRAFAST          27.0 MBits/s
+ };
+ #endif
+@@ -383,6 +392,11 @@ bool spiTransfer(SPI_TypeDef *instance, uint8_t *rxData, const uint8_t *txData,
+         while(!LL_SPI_IsActiveFlag_TXP(instance)) {
+             if ((spiTimeout--) == 0) {
+                 spiTimeoutUserCallback(instance);
++                // Abandoning the transfer with the peripheral still enabled leaves
++                // TSIZE partially consumed; the next transfer would then never raise
++                // EOT and hang forever in the wait below. Always leave SPI disabled.
++                LL_SPI_ClearFlag_TXTF(instance);
++                LL_SPI_Disable(instance);
+                 return false;
+             }
+         }
+@@ -393,6 +407,8 @@ bool spiTransfer(SPI_TypeDef *instance, uint8_t *rxData, const uint8_t *txData,
+         while (!LL_SPI_IsActiveFlag_RXP(instance)) {
+             if ((spiTimeout--) == 0) {
+                 spiTimeoutUserCallback(instance);
++                LL_SPI_ClearFlag_TXTF(instance);
++                LL_SPI_Disable(instance);
+                 return false;
+             }
+         }
+@@ -402,7 +418,15 @@ bool spiTransfer(SPI_TypeDef *instance, uint8_t *rxData, const uint8_t *txData,
+         }
+         --len;
+     }
+-    while (!LL_SPI_IsActiveFlag_EOT(instance));
++    int eotTimeout = 100000;
++    while (!LL_SPI_IsActiveFlag_EOT(instance)) {
++        if ((eotTimeout--) == 0) {
++            spiTimeoutUserCallback(instance);
++            LL_SPI_ClearFlag_TXTF(instance);
++            LL_SPI_Disable(instance);
++            return false;
++        }
++    }
+     LL_SPI_ClearFlag_TXTF(instance);
+     LL_SPI_Disable(instance);
+ #else
+diff --git a/src/main/drivers/max7456.c b/src/main/drivers/max7456.c
+index 73493b50f..a140af593 100644
+--- a/src/main/drivers/max7456.c
++++ b/src/main/drivers/max7456.c
+@@ -225,12 +225,21 @@ static bool max7456IsBusy(void)
+     return true;
+ }
+ 
+-// Wait until max7456IsBusy() returns false, toggling a LED on each iteration
+-static void max7456WaitUntilNoBusy(void)
++// Wait until max7456IsBusy() returns false, toggling a LED on each iteration.
++// Bounded: if the chip is missing/unresponsive, max7456IsBusy() defaults to
++// "busy" on every failed SPI read, which otherwise spins this forever and
++// hangs the whole boot (confirmed on hardware via SWD - PC parked here with
++// no MAX7456/AT7456E replying on SPI1). Same timeout budget as the nearby
++// soft-reset wait in max7456Init().
++static bool max7456WaitUntilNoBusy(void)
+ {
++    timeMs_t timeout = millis() + MAX_RESET_TIMEOUT_MS;
+     while (1) {
+         if (!max7456IsBusy()) {
+-            break;
++            return true;
++        }
++        if (millis() >= timeout) {
++            return false;
+         }
+ #ifdef LED0_TOGGLE
+         LED0_TOGGLE;
+@@ -648,13 +657,21 @@ void max7456RefreshAll(void)
+         busRead(state.dev, MAX7456ADD_DMM | MAX7456ADD_READ, &dmm);
+         busWrite(state.dev, MAX7456ADD_DMM, state.registers.dmm | DMM_CLEAR_DISPLAY);
+ 
+-        // Wait for clear to complete (20us)
++        // Wait for clear to complete (20us). Bounded for the same reason as
++        // max7456WaitUntilNoBusy(): confirmed on hardware via SWD that a
++        // non-responding MAX7456/AT7456E leaves DMM_CLEAR_DISPLAY set forever,
++        // parking the CPU here permanently (call chain: main -> ... ->
++        // max7456RefreshAll, PC stuck 15+s with sysTickUptime still advancing).
++        timeMs_t clearTimeout = millis() + MAX_RESET_TIMEOUT_MS;
+         while (1) {
+              busRead(state.dev, MAX7456ADD_DMM | MAX7456ADD_READ, &dmm);
+              if (!(dmm & DMM_CLEAR_DISPLAY)) {
+                  state.registers.dmm = dmm;
+                  break;
+              }
++             if (millis() >= clearTimeout) {
++                 break;
++             }
+         }
+ 
+         // Mark non-blank characters as dirty

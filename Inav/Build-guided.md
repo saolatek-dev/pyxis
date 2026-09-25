@@ -1,98 +1,88 @@
-# Building INAV firmware
+# Building INAV firmware for the Pyxis FC (SAOLA_H743)
 
-This document gives the basic steps to set up the environment and configure an INAV firmware build for a custom flight controller (FC) board.
+INAV has no prebuilt release for this board yet, so the firmware must be
+built from source.
 
-## 1. Install the required tools (dependencies)
-
-First, install the build tools and the source control tools. Run the following in a terminal:
+## 1. Install the tools
 
 ```bash
 sudo apt update
-sudo apt install gcc-arm-none-eabi make git dfu-util
+sudo apt install git cmake make ruby gcc-arm-none-eabi dfu-util
 ```
 
-## 2. Get the INAV source code
+If CMake cannot find a suitable compiler, INAV downloads its own pinned ARM
+toolchain into `tools/` on the first `cmake` run.
 
-Download the INAV source code from the official GitHub repository and switch to the `master` branch (or the release branch you want):
-
-```bash 
-git clone https://github.com/iNavFlight/inav.git
-cd inav 
-git checkout master
-```
-
-## 3. Create the configuration directory for the flight controller (target)
-
-To compile firmware for a specific FC board (for example `SaolaH743`), create a new target directory holding the hardware settings for that board:
+## 2. Get the right version of the INAV source
 
 ```bash
-mkdir -p src/main/target/SaolaH743
-cd src/main/target/SaolaH743/
-touch target.h target.c CMakeLists.txt
+git clone https://github.com/iNavFlight/inav.git
+cd inav
+git checkout 4939a7ff7cd263b60718080b3655bfae7b589c93
 ```
 
-> **Note:** The target directory is usually the flight controller's name written as one word, and is used as the build command name later.
+This is the commit recorded in [SOURCE.md](SOURCE.md) (INAV 9.1). The driver
+patch in step 3 is written against it.
 
-### Structure of a target directory
+## 3. Add the SAOLA_H743 target
 
-Inside the new target directory (`src/main/target/SaolaH743/`) you need to create the configuration files. The essential files and their roles are:
+Assuming the `pyxis` repository is at `~/pyxis`:
+
+```bash
+PYXIS=~/pyxis
+
+cp -r "$PYXIS/Inav/SAOLA_H743" src/main/target/
+git apply "$PYXIS/Inav/patches/upstream-changes.patch"
+```
+
+The target directory holds:
 
 ```text
-src/main/target/SaolaH743/
-├── CMakeLists.txt    # Declares the chip (MCU) type and the build flags
-├── target.h          # Declares and defines every pin and peripheral
-├── target.c          # Board-specific initialisation code (usually minimal)
-└── config.c          # (Optional) Default configuration applied when the firmware is first flashed
+src/main/target/SAOLA_H743/
+├── CMakeLists.txt    # MCU type (STM32H743xI) and the 8 MHz HSE crystal
+├── target.h          # Pins, sensors, UARTs, ADC, default features
+└── target.c          # Motor timer map
 ```
 
+**Apply the patch.** It fixes three shared INAV drivers
+(see [SOURCE.md](SOURCE.md)). Without it the firmware still builds, but:
 
-## 4. Building (compiling) the firmware
+- the board hangs at boot when the AT7456E OSD does not answer on SPI1;
+- an SPI timeout on STM32H7 can hang the next SPI transfer forever.
 
-The build uses CMake. The essentials you need are `gcc-arm-none-eabi`, `make` and `cmake`.
-
-Run the following commands in a terminal:
+## 4. Build
 
 ```bash
-# 1. Go back to the root directory of the INAV project
-cd /path/to/inav
-
-# 2. Create the build directory and change into it
 mkdir -p build && cd build
-
-# 3. Generate the Makefiles (Release build for best performance)
 cmake .. -DCMAKE_BUILD_TYPE=Release
-
-# 4. Build (replace 'SaolaH743' with your target name)
-make SaolaH743
+make SAOLA_H743 -j$(nproc)
 ```
 
-> **Build notes:** After `make` runs, CMake invokes the ARM GCC toolchain. On success, INAV produces an executable `.elf` at `build/bin/SaolaH743.elf`, which is then automatically converted to a hex file: **`build/inav_SaolaH743.hex`**.
+The output is `build/inav_<version>_SAOLA_H743.hex`, for example
+`inav_9.1.0_SAOLA_H743.hex`.
 
-## 5. Flashing the firmware to the board
+## 5. Flash
 
-Once you have the `.hex` file, you can flash it to the flight controller:
 1. Connect the board to the computer with a USB cable.
 2. Open **INAV Configurator**.
-3. Go to the **Firmware Flasher** tab in the left-hand menu.
-4. Click **Load firmware [Local]** (load a firmware file from this computer).
-5. Select the `inav_SaolaH743.hex` file you just built.
-6. Click **Flash Firmware**.
-   *If the COM port (VCP) is not working yet because the board is brand new, hold the physical **BOOT** button on the board while plugging in USB to enter **DFU mode**, then flash.*
+3. Go to the **Firmware Flasher** tab.
+4. Click **Load firmware [Local]** and select the `.hex` file you just built.
+5. Click **Flash Firmware**.
 
+If the board is new or runs another flight stack, the COM port may not
+appear. Hold the **BOOT** button while plugging in USB to enter **DFU mode**,
+then flash. See [../Docs/flashing-setup.md](../Docs/flashing-setup.md) for
+the USB drivers.
 
-Checks before building:
+## 6. First setup
 
-Check whether INAV supports the BMI270
-cd inav 
-grep -r "BMI270" src/main/ --include="*.h" --include="*.c" -l
+> [!WARNING]
+> This target enables `PWM_OUTPUT_ENABLE` by default, so the ESCs receive a
+> signal from the first boot. **Remove the propellers** before connecting a
+> battery.
 
- Check that SystemClock_Config is not overridden
- grep -r "SystemClock_Config" src/main/ --include="*.c" -l
-
-
-# Build and flash
-
-mkdir -p build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make SaolaH743 -j$(nproc) 2>&1 | tee ../build.log
-tail -20 ../build.log
+- RC input defaults to SBUS on UART6. For a CRSF/ELRS receiver run
+  `set serialrx_provider = CRSF` in the CLI.
+- ESC telemetry: set UART7 to *ESC Sensor* in the **Ports** tab.
+- Battery voltage: `vbat_scale` defaults to 1100 (11:1 divider). Calibrate
+  per board with `set vbat_scale = <old_scale * V_meter / V_configurator>`.

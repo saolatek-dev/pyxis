@@ -1,5 +1,6 @@
 ============================================================
-SAOLAH743 — PINOUT REFERENCE (từ hwdef ArduPilot)
+SAOLA_H743 — INAV TARGET PIN REFERENCE
+The board schematic is authoritative: see ../Docs/pinout.md
 ============================================================
 
 ------------------------------------------------------------
@@ -7,13 +8,15 @@ SERIAL / UART
 ------------------------------------------------------------
 USB VCP   PA11 (DM)     PA12 (DP)    — OTG FS
 UART1     TX: PA9       RX: PA10     — TELEM1
-UART2     TX: PA2       RX: PA3      — DJIO3
+UART2     TX: PA2       RX: PA3      — DJI O3 / TELEM2
 UART3     TX: PD8       RX: PD9      — GPS
-UART4     TX: PA0       RX: PA1      — TELEM2
-UART6     TX: PC6       RX: PC7      — RC INPUT
+UART4     TX: PA0       RX: PA1      — spare
+UART6     TX: PC6       RX: PC7      — RC INPUT (default SBUS)
 UART7     TX: —         RX: PE7      — ESC telemetry
-UART8     TX: PE1       RX: PE0      — TELEM3
-SBUS_INV  PD0 (OUTPUT LOW)
+UART8     TX: PE1       RX: PE0      — companion computer
+SBUS: no hardware inverter (PD0 not connected); the UART inverts RX in hardware
+
+SERIAL_PORT_COUNT = 8 (VCP + 7 UARTs)
 
 ------------------------------------------------------------
 SPI
@@ -22,51 +25,56 @@ SPI1      SCK: PA5    MISO: PA6    MOSI: PA7
 SPI2      SCK: PD3    MISO: PC2    MOSI: PC3
 
 CS pins:
-  BMI270        CS: PA15   (SPI2)  — init 1MHz → 10MHz
+  BMI270        CS: PA15   (SPI2)
   BMI088 Accel  CS: PD4    (SPI2)
   BMI088 Gyro   CS: PD5    (SPI2)
-  AT7456E OSD   CS: PB12   (SPI1)
+  AT7456E OSD   CS: PD11   (SPI1)
+
+IMU autodetect: BMI088 is probed first, BMI270 is used when no BMI088
+is fitted. Alignment: BMI088 CW270_DEG, BMI270 CW0_DEG.
 
 ------------------------------------------------------------
 I2C
 ------------------------------------------------------------
-I2C1      SCL: PB6    SDA: PB7     — Connector ngoài
-I2C2      SCL: PB10   SDA: PB11   — Baro + Mag (có PULLUP)
+I2C1      SCL: PB6    SDA: PB7     — external connector
+I2C2      SCL: PB10   SDA: PB11    — onboard baro + mag
 
-Sensors trên I2C2:
-  Baro:  DPS310    addr 0x77 / 0x76
-  Mag:   IST8310   addr 0x0E
-  Mag:   QMC5883L  addr 0x0D
+Sensors on I2C2:
+  Baro:  DPS310 / DPS368 (same driver)   addr 0x77 / 0x76
+  Mag:   IST8310                          addr 0x0E   CW90_DEG
+  Mag:   QMC5883L                         addr 0x0D   CW90_DEG
 
 ------------------------------------------------------------
 MOTOR / PWM OUTPUT
 ------------------------------------------------------------
-M1   PE14   TIM1_CH4   BIDIR
-M2   PE13   TIM1_CH3
-M3   PE11   TIM1_CH2   BIDIR
-M4   PE9    TIM1_CH1
-M5   PB1    TIM3_CH4   BIDIR
-M6   PB0    TIM3_CH3
-M7   PD12   TIM4_CH1
-M8   PD13   TIM4_CH2
-M9   PD14   TIM4_CH3
-M10  PD15   TIM4_CH4
+M1   PE14   TIM1_CH4   DSHOT
+M2   PE13   TIM1_CH3   DSHOT
+M3   PE11   TIM1_CH2   DSHOT
+M4   PE9    TIM1_CH1   DSHOT
+M5   PB1    TIM3_CH4   DSHOT
+M6   PB0    TIM3_CH3   DSHOT
+M7   PD12   TIM4_CH1   DSHOT
+M8   PD13   TIM4_CH2   DSHOT
+M9   PD14   TIM4_CH3   DSHOT
+M10  PD15   TIM4_CH4   PWM only (H743 has no DMA request for TIM4_CH4)
+
+USE_DSHOT_DMAR is NOT enabled (per-channel DMA DSHOT).
 
 ------------------------------------------------------------
 ADC
 ------------------------------------------------------------
-Voltage   PC0   ADC1   scale 21.12
-Current   PC1   ADC1   scale 40.2
+Voltage   PC0   ADC_CHANNEL_1   vbat_scale 1100 (11:1 divider)
+Current   PC1   ADC_CHANNEL_2   current_meter_scale 4020 (40.2)
 
 ------------------------------------------------------------
-LED (active LOW)
+LED (active HIGH, LED*_INVERTED set)
 ------------------------------------------------------------
-LED Red    PE5
-LED Green  PE6
-LED Blue   PE4
+LED0  PE5   red
+LED1  PE6   green
+LED2  PE4   blue
 
 ------------------------------------------------------------
-SDMMC / BLACKBOX (SD card)
+SDMMC / BLACKBOX (SD card, 4-bit)
 ------------------------------------------------------------
 SDMMC1_CK    PC12
 SDMMC1_CMD   PD2
@@ -87,14 +95,8 @@ SWD (debug)
 SWDIO   PA13
 SWDCLK  PA14
 
-============================================================
-GHI CHÚ CHO INAV TARGET
-============================================================
-- Chỉ dùng BMI270 (PA15/SPI2), bỏ BMI088
-- SERIAL_PORT_COUNT = 9 (8 UART + 1 VCP)
-- RC input: UART6 (PC6/PC7) + SBUS inverter PD0
-- LED0_PIN = PE5 (green) hoặc PE6
-- Motor TIM1 (M1-M4) + TIM3 (M5-M6) + TIM4 (M7-M10)
-- USE_DSHOT_DMAR bắt buộc với H743
-- I2C2 là internal (baro/mag), I2C1 là external connector
+------------------------------------------------------------
+CLOCK
+------------------------------------------------------------
+HSE 8 MHz crystal (CMakeLists.txt: HSE_MHZ 8). USB uses HSI48.
 ============================================================
