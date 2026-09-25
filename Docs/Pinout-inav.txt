@@ -40,7 +40,7 @@ I2C1      SCL: PB6    SDA: PB7     — external connector
 I2C2      SCL: PB10   SDA: PB11    — onboard baro + mag
 
 Sensors on I2C2:
-  Baro:  DPS310 / DPS368 (same driver)   addr 0x77 / 0x76
+  Baro:  DPS368 (DPS310 driver)          addr 0x76
   Mag:   IST8310                          addr 0x0E   CW90_DEG
   Mag:   QMC5883L                         addr 0x0D   CW90_DEG
 

@@ -9,7 +9,7 @@ The hardware as declared in the INAV target:
 
 *   **Microcontroller (MCU):** STM32H743, 8 MHz HSE crystal
 *   **IMU:** BMI088 or BMI270 on SPI2, detected at boot (BMI088 is used when fitted)
-*   **Barometer:** DPS310 or DPS368 on internal I2C2 (same driver)
+*   **Barometer:** DPS368 on internal I2C2, address `0x76` (earlier boards: DPS310). INAV reads it with its DPS310 driver (`USE_BARO_DPS310`); the two chips share a register map and chip ID
 *   **Compass:** IST8310 or QMC5883L on internal I2C2
 *   **OSD:** AT7456E on SPI1, CS `PD11`
 *   **Flight logging (Blackbox):** SD card over SDMMC1, enabled by default

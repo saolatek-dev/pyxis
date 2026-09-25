@@ -49,7 +49,7 @@ In firmware sources and build commands the board is identified as
 | MCU | STM32H743VIT6, Cortex-M7, 480 MHz |
 | Memory | 2 MB flash, 1 MB RAM |
 | IMU | BMI270 (default) or BMI088 |
-| Barometer | DPS310 or DPS368 |
+| Barometer | DPS368 (earlier boards: DPS310) |
 | Magnetometer | IST8310 |
 | OSD | AT7456E |
 | Input voltage | 3S–5S LiPo (input TVS diode: SM6T27A) |
@@ -59,7 +59,7 @@ In firmware sources and build commands the board is identified as
 | Weight | 10 g |
 
 > [!NOTE]
-> Boards ship with either a DPS310 or a DPS368 barometer. The two parts share a register map and Product ID, so the current ArduPilot, INAV and PX4 sources drive both with the DPS310 driver. Release `Ardupilot-v0.0.3` supports the DPS310 only, and release `PX4-v0.0.3` comes in two variants (`default` for DPS310, `dps368` for DPS368); check which part is fitted to your board before flashing a release.
+> Current boards are fitted with a **DPS368** barometer (earlier boards used a DPS310). No firmware in this repository has a separate DPS368 driver: the DPS368 has the same register map and Product ID (`0x10`) as the DPS310, so ArduPilot, INAV, Betaflight and PX4 all read it with their DPS310 driver. That is why the firmware configs say `DPS310`. Release `Ardupilot-v0.0.3` supports the DPS310 only, and release `PX4-v0.0.3` comes in two variants (`default` for DPS310, `dps368` for DPS368); check which part is fitted to your board before flashing a release.
 
 ## Prerequisites
 
@@ -93,10 +93,10 @@ below. It includes everything the board needs to boot.
 
 | Firmware | File for a new board | Variant to check | Flashing guide |
 | --- | --- | --- | --- |
-| ArduPilot | `arducopter_with_bl.bin` / `.hex` | DPS310 barometer only | [Flash](Ardupilot/boot-firmware-guided.md) |
+| ArduPilot | `arducopter_with_bl.bin` / `.hex` | Release `v0.0.3` targets the DPS310; for a DPS368 board build from source | [Flash](Ardupilot/boot-firmware-guided.md) |
 | Betaflight | `betaflight_*_SAOLAH743_BMI270.hex` / `.dfu` or `betaflight_*_SAOLAH743.hex` / `.dfu` | `SAOLAH743_BMI270` = BMI270 only, `SAOLAH743` = BMI088 + BMI270 | [Flash](BetaFlight/flash-guided.md) |
-| INAV | `inav_*_SAOLA_H743.hex` | None (BMI088/BMI270 and DPS310/DPS368 detected at boot) | [Flash](Inav/Build-guided.md#5-flash) |
-| PX4 | `saolah743_h743_<variant>_factory.hex` / `.bin` | `default` = DPS310, `dps368` = DPS368 | [Flash](PX4/flash-guided.md) |
+| INAV | `inav_*_SAOLA_H743.hex` | None (BMI088/BMI270 detected at boot; DPS368 read by the DPS310 driver) | [Flash](Inav/Build-guided.md#5-flash) |
+| PX4 | `saolah743_h743_<variant>_factory.hex` / `.bin` | `dps368` for current (DPS368) boards, `default` for DPS310 boards | [Flash](PX4/flash-guided.md) |
 
 Use `.hex` with a graphical tool (Configurator, STM32CubeProgrammer), and
 `.bin` / `.dfu` with `dfu-util`. `dfu-util` cannot read `.hex` files.

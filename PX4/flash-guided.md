@@ -15,7 +15,7 @@
 | Barometer | Files to use |
 |---|---|
 | **DPS310** | `saolah743_h743_default_*` |
-| **DPS368** | `saolah743_h743_dps368_*` |
+| **DPS368** (current boards) | `saolah743_h743_dps368_*` |
 
 The IMU does not matter. Both variants detect BMI088 and BMI270 automatically.
 

@@ -54,8 +54,10 @@ TELEM1 is the only connector with RX on pin 3 and TX on pin 4.
 
 | Device | Bus | Address |
 | --- | --- | --- |
-| DPS310 barometer | I²C2 | `0x76` (SDO tied to GND) |
+| DPS368 barometer (earlier boards: DPS310) | I²C2 | `0x76` (SDO tied to GND) |
 | IST8310 compass | I²C2 | `0x0E` |
+
+The firmware configs name the barometer `DPS310`. That is intentional: the DPS368 has the same register map and Product ID (`0x10`), and every flight stack here reads it with its DPS310 driver.
 
 ## Motor outputs
 

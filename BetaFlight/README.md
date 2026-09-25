@@ -45,7 +45,7 @@ and `SAOLAH743` for a board that also carries a BMI088.
 | Function | Resource |
 |---|---|
 | IMU | BMI270 on SPI2, CS `PA15`, no interrupt line |
-| Barometer | DPS310 on I2C2 |
+| Barometer | DPS368 on I2C2 (`0x76`), read by the DPS310 driver (`USE_BARO_DPS310`) |
 | Compass | IST8310 / QMC5883L on I2C2 |
 | OSD | AT7456E (MAX7456) on SPI1, CS `PD11` |
 | Blackbox | microSD over SDMMC1, 4-bit |

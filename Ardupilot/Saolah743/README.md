@@ -6,7 +6,7 @@ The Saolah743 is a DIY flight controller based on the STM32H743.
 
 - STM32H743 microcontroller
 - BMI088/BMI270 dual IMUs
-- DPS310 barometer
+- DPS368 barometer (earlier boards: DPS310), read by the DPS310 driver
 - IST8310 / QMC5883L magnetometer
 - AT7456E OSD
 - MicroSD Card Slot
