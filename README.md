@@ -61,15 +61,6 @@ In firmware sources and build commands the board is identified as
 > [!NOTE]
 > Current boards are fitted with a **DPS368** barometer (earlier boards used a DPS310). No firmware in this repository has a separate DPS368 driver: the DPS368 has the same register map and Product ID (`0x10`) as the DPS310, so ArduPilot, INAV, Betaflight and PX4 all read it with their DPS310 driver. That is why the firmware configs say `DPS310`. Release `Ardupilot-v0.0.3` supports the DPS310 only, and release `PX4-v0.0.3` comes in two variants (`default` for DPS310, `dps368` for DPS368); check which part is fitted to your board before flashing a release.
 
-## Prerequisites
-
-| Item | Requirement |
-| --- | --- |
-| Flight controller | Pyxis FC |
-| Cable | USB Type-C, data capable |
-| Boot mode | Access to the BOOT button |
-| Optional | microSD card for logging, SWD probe for debugging |
-
 ## Quick start
 
 **1. Get the firmware.** The easiest way is to download a prebuilt file from
