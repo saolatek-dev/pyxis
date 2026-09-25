@@ -34,8 +34,9 @@ git submodule update --init src/config
 git -C src/config checkout 036eaa86f69cd24d34c05dcdeb7a005e59c7ca29
 ```
 
-For a byte-identical copy of the release binaries, also set the build date as
-shown in [SOURCE.md](SOURCE.md#rebuilding).
+For a byte-identical copy of the release binaries, use the config from this
+repository at commit `83ee3b7` (before the 2026-09-25 pin fixes) and set the
+build date as shown in [SOURCE.md](SOURCE.md#rebuilding).
 
 ### Build on a newer Betaflight
 

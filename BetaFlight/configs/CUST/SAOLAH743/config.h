@@ -68,7 +68,7 @@
 #define UART3_TX_PIN PD8
 #define UART4_TX_PIN PA0
 #define UART6_TX_PIN PC6
-#define UART7_TX_PIN PE8
+// UART7 is RX only (ESC telemetry on PE7), no TX pin on the board
 #define UART8_TX_PIN PE1
 #define UART1_RX_PIN PA10
 #define UART2_RX_PIN PA3
@@ -78,7 +78,8 @@
 #define UART7_RX_PIN PE7
 #define UART8_RX_PIN PE0
 
-#define INVERTER_PIN_UART6 PD0  // SBUS hardware inverter control
+// No SBUS hardware inverter: PD0 is not connected. On H7 the UART inverts
+// RX itself (SERIAL_INVERTED -> RX pin level inverted), USE_INVERTER is unused.
 
 #define I2C1_SCL_PIN PB6        // external connector
 #define I2C2_SCL_PIN PB10       // onboard baro/mag
@@ -110,7 +111,7 @@
 #define LED2_INVERTED
 
 #define GYRO_1_CS_PIN      PA15
-#define MAX7456_SPI_CS_PIN PB12
+#define MAX7456_SPI_CS_PIN PD11   // AT7456E CS on SPI1 (schematic)
 
 // PD4 = BMI088 ACCEL_CS, PD5 = BMI088 GYRO_CS (see Docs/pinout.md).
 // Betaflight has no BMI088 driver, so it never deselects these pins; left
@@ -160,7 +161,7 @@
 #define DEFAULT_CURRENT_METER_SOURCE CURRENT_METER_ADC
 #define DEFAULT_VOLTAGE_METER_SOURCE VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SCALE  402
-#define DEFAULT_VOLTAGE_METER_SCALE  213
+#define DEFAULT_VOLTAGE_METER_SCALE  110   // 11:1 divider (100k/10k)
 
 #define MSP_UART             SERIAL_PORT_USART1  // TELEM1
 #define MSP_DISPLAYPORT_UART SERIAL_PORT_USART2  // DJI O3

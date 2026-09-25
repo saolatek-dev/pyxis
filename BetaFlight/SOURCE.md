@@ -80,10 +80,13 @@ make CONFIG=SAOLAH743_BMI270
 make CONFIG=SAOLAH743_BMI270 obj/betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
 ```
 
-With `SOURCE_DATE_EPOCH` set, the `.hex` and `.dfu` in `obj/` are
-**byte-identical** to the released files. This was verified with
-`arm-none-eabi-gcc` 13.2.1 (`13.2.rel1`). Without it, only the embedded
-build date and time differ.
+These commands build the **current** configs. To reproduce release
+`BetaFlight-v0.0.2` byte for byte, take the config from this repository at
+commit `83ee3b7` instead
+(`git -C "$PYXIS" show 83ee3b7:BetaFlight/configs/CUST/SAOLAH743_BMI270/config.h`)
+and keep `SOURCE_DATE_EPOCH`. With those, the `.hex` and `.dfu` in `obj/`
+were verified **byte-identical** to the released files using
+`arm-none-eabi-gcc` 13.2.1 (`13.2.rel1`).
 
 Build instructions in detail: [build-guided.md](build-guided.md).
 
@@ -100,6 +103,16 @@ f78f00c6cbeb17eef0406f257e88b593  1676186  betaflight_2026.12.0-alpha_STM32H743_
 ```
 
 Verify a download with `md5sum <file>` and compare against the table.
+
+> [!WARNING]
+> This release was built from the configs as they were before 2026-09-25,
+> when four definitions were corrected to match the schematic: OSD chip
+> select `PB12` → `PD11`, `DEFAULT_VOLTAGE_METER_SCALE` 213 → 110, and the
+> unused `INVERTER_PIN_UART6 PD0` and `UART7_TX_PIN PE8` removed. Those
+> configs are in this repository's history at commit `83ee3b7`. Rebuilding
+> from the current files does **not** reproduce these checksums; with the
+> released firmware the OSD does not work and the battery voltage reads about
+> twice the real value (fix with `set vbat_scale = 110`).
 
 The `SAOLAH743` (BMI088 + BMI270) variant has not been released.
 

@@ -47,16 +47,16 @@ if your board carries a BMI088.
 | IMU | BMI270 on SPI2, CS `PA15`, no interrupt line |
 | Barometer | DPS310 on I2C2 |
 | Compass | IST8310 / QMC5883L on I2C2 |
-| OSD | AT7456E (MAX7456) on SPI1, CS `PB12` |
+| OSD | AT7456E (MAX7456) on SPI1, CS `PD11` |
 | Blackbox | microSD over SDMMC1, 4-bit |
 | Motors | M1–M4 TIM1, M5–M6 TIM3, M7–M10 TIM4 (DShot; bidirectional on M1, M3, M5) |
 | UART1 | TELEM1 (MSP) |
 | UART2 | DJI O3 (MSP DisplayPort) |
 | UART3 | GPS |
-| UART6 | RC input (SBUS inverter on `PD0`) |
+| UART6 | RC input (SBUS inverted inside the UART; no hardware inverter) |
 | UART7 | ESC telemetry |
 | UART4, UART8 | Free |
-| ADC | Voltage `PC0`, current `PC1` |
+| ADC | Voltage `PC0` (`vbat_scale` 110), current `PC1` (`ibata_scale` 402) |
 
 Betaflight only assigns M1–M8 at compile time. For M9/M10, run this in the CLI:
 
