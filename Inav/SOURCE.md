@@ -79,19 +79,31 @@ commit `3e03018`. The release tag itself points at an older commit
 
 ```
 MD5                               Bytes     File
-71b3119dda8cefa1a7ba65f93bad4ddd   715263   Inav-SAOLA_H743.zip
 0213f2a93560392b1771908eecbe9e8e  1804681   inav_9.1.0_SAOLA_H743.hex
 ```
 
 ```
 SHA-256                                                           File
-2ee2362ff2bb51c1f80c56b8ac5fdaecaa9a3e7e235705e78c657cfcb0dac729  Inav-SAOLA_H743.zip
 6b2e579b4c0a3848d940774aa988d3aa6f96723fa71292052fa6386711fe9f56  inav_9.1.0_SAOLA_H743.hex
 ```
 
-Verify a download with `md5sum <file>` or `sha256sum <file>` and compare
-against the tables. GitHub also shows the SHA-256 of the zip next to the
-asset.
+The archive also contains `LICENSE`, this `SOURCE.md`, `MD5SUMS.txt` and
+`SHA256SUMS.txt`. Verify a download with `md5sum <file>` or
+`sha256sum <file>` and compare against the tables, or run
+`sha256sum -c SHA256SUMS.txt` inside the extracted folder.
+
+Checksum of the archive itself (listed only in the repository copy of this
+file, since the copy inside the archive cannot contain its own checksum):
+
+```
+MD5                               Bytes     File
+900d60a121f2ae353c15bc50cb795528   727954   Inav-SAOLA_H743.zip
+SHA-256  8b15a92f578ad6110030e6b755a1cebb185a782d4ebb07608ccb04173fcc074f
+```
+
+The first upload of `Inav-SAOLA_H743.zip` on 2026-09-25 (MD5 `71b3119dda8cefa1a7ba65f93bad4ddd`,
+SHA-256 `2ee2362ff2bb51c1…`) had the same firmware files but no `LICENSE`; it
+was replaced by the archive above.
 
 ## License
 

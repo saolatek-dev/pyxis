@@ -31,7 +31,7 @@ upstream licenses grant the right to distribute them, subject to conditions.
 
 | Obligation | Satisfied by |
 | --- | --- |
-| §4 — supply a copy of the license | `LICENSE` in each directory |
+| §4 — supply a copy of the license | `LICENSE` in each directory, and in every release archive |
 | §5(a) — state that the work is modified, with a date | Copyright headers in modified files; `SOURCE.md` |
 | §5(b)(c) — license the whole work under GPLv3 | Inherited; no conflicting terms are imposed |
 | §6 — supply Corresponding Source for released binaries | `SOURCE.md` in each directory, shipped with each release |
@@ -40,7 +40,8 @@ upstream licenses grant the right to distribute them, subject to conditions.
 ### `PX4/` (BSD-3-Clause)
 
 Retain the copyright notice, the list of conditions and the disclaimer in
-both source and binary distributions. Do not use the names of the copyright
+both source and binary distributions. For binary releases this means shipping
+`PX4/LICENSE` inside every release archive. Do not use the names of the copyright
 holders to endorse derived products. Derived files keep the original PX4
 Development Team copyright lines.
 

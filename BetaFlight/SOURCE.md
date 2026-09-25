@@ -103,7 +103,6 @@ at commit `3e03018`. The release tag itself points at an older commit
 
 ```
 MD5                               Bytes     File
-5006a47256bfa62ec3ddb266208a6935  2137741   BetaFlight-SAOLAH743.zip
 35e2213cc816b07e6935e52b96c377fd   596194   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
 374b80ecad25f8bbeea433d2663ddf4e  1676186   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.hex
 cffc5b40e8cfbcd2322915a769c159ab   599170   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
@@ -112,16 +111,29 @@ cffc5b40e8cfbcd2322915a769c159ab   599170   betaflight_2026.12.0-alpha_STM32H743
 
 ```
 SHA-256                                                           File
-5e3ef11e95dcb902ac0f2b0921567766f3ea9e0918f8bd73bccf089d87576f69  BetaFlight-SAOLAH743.zip
 5f21f100130abe725592549f8c633c54c607ca034b382a3b8c7a64837e11fce9  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
 441fced7d5ffa22f234d090682f0b18b9c46dbd6a505290bf8bf800dfceb716f  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.hex
 3ba72254fd2b3ea58d108b9e47ba548381ed635f605e164771b82cfd4152b788  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
 9214b89e590874cf6d62de3a60cbf62b081dcdfa577cd2b60e3bff180df1a2a0  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.hex
 ```
 
-Verify a download with `md5sum <file>` or `sha256sum <file>` and compare
-against the tables. GitHub also shows the SHA-256 of the zip next to the
-asset.
+The archive also contains `LICENSE`, this `SOURCE.md`, `MD5SUMS.txt` and
+`SHA256SUMS.txt`. Verify a download with `md5sum <file>` or
+`sha256sum <file>` and compare against the tables, or run
+`sha256sum -c SHA256SUMS.txt` inside the extracted folder.
+
+Checksum of the archive itself (listed only in the repository copy of this
+file, since the copy inside the archive cannot contain its own checksum):
+
+```
+MD5                               Bytes     File
+2ae6b5fba617df67047be29c6285dbcc  2150292   BetaFlight-SAOLAH743.zip
+SHA-256  12506a44661089c83aa45ec22b52edee4e89bd93fe220031699a0072c7bcc19f
+```
+
+The first upload of `BetaFlight-SAOLAH743.zip` on 2026-09-25 (MD5 `5006a47256bfa62ec3ddb266208a6935`,
+SHA-256 `5e3ef11e95dcb902…`) had the same firmware files but no `LICENSE`; it
+was replaced by the archive above.
 
 ### Previously published assets
 
