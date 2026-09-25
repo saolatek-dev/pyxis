@@ -1,6 +1,6 @@
 # Building PX4 firmware for the SAOLAH743
 
-If you don't want to build it yourself, download a prebuilt release from **[Releases](../../releases)** (tag `PX4-*`) and see [flash-guided.md](flash-guided.md).
+If you don't want to build it yourself, download a prebuilt release from **[Releases](../../../releases)** (tag `PX4-*`) and see [flash-guided.md](flash-guided.md).
 
 ## 1. Install the environment
 
@@ -70,19 +70,26 @@ The result overwrites `boards/saolah743/h743/extras/saolah743_h743_bootloader.bi
 
 ## 6. Combine a factory image (optional)
 
-For new/blank boards — one file containing both the bootloader and the firmware:
+For new/blank boards — one file containing both the bootloader and the firmware.
+Set `CONFIG` to `default` (DPS310) or `dps368` (DPS368):
 
 ```bash
-python3 - <<'EOF'
+CONFIG=default
+python3 - "$CONFIG" <<'EOF'
+import sys
+c   = sys.argv[1]
 bl  = open('boards/saolah743/h743/extras/saolah743_h743_bootloader.bin','rb').read()
-app = open('build/saolah743_h743_default/saolah743_h743_default.bin','rb').read()
+app = open(f'build/saolah743_h743_{c}/saolah743_h743_{c}.bin','rb').read()
 assert len(bl) <= 0x20000
-open('factory.bin','wb').write(bl + b'\xff'*(0x20000-len(bl)) + app)
+open(f'saolah743_h743_{c}_factory.bin','wb').write(bl + b'\xff'*(0x20000-len(bl)) + app)
 EOF
 
 arm-none-eabi-objcopy -I binary -O ihex --change-addresses 0x08000000 \
-  factory.bin factory.hex
+  saolah743_h743_${CONFIG}_factory.bin saolah743_h743_${CONFIG}_factory.hex
 ```
+
+These are the same `*_factory.bin` / `*_factory.hex` files published in the
+releases; flash them as described in [flash-guided.md](flash-guided.md).
 
 The `.hex` file carries its own addresses, so STM32CubeProgrammer does not need a Start Address.
 

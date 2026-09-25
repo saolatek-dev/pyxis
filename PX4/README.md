@@ -16,7 +16,7 @@ PX4 port for the SAOLAH743 flight controller (STM32H743VIT6, 2 MB flash).
 
 ## Prebuilt firmware
 
-If you don't want to build it yourself, download it from **[Releases](../../releases)** — pick a tag with the `PX4-` prefix.
+If you don't want to build it yourself, download it from **[Releases](../../../releases)** — pick a tag with the `PX4-` prefix.
 
 Each release contains:
 
