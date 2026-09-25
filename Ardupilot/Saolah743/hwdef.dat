@@ -1,78 +1,91 @@
-# for the SaolaH743 hardware
+# hw definition file for processing by chibios_hwdef.py
+# for the Saolah743 hardware (DIY flight controller)
+
 # MCU class and specific type
 MCU STM32H7xx STM32H743xx
-# board ID
-APJ_BOARD_ID AP_HW_SaolaH743
 
-# Khai báo 0 để sử dụng xung nội HSI (tự động cấu hình PLL)
-OSCILLATOR_HZ 0
+# board ID. See Tools/AP_Bootloader/board_types.txt
+APJ_BOARD_ID AP_HW_Saolah743
+
+# crystal frequency - 8MHz external oscillator fitted
+OSCILLATOR_HZ 8000000
+
 # ChibiOS system timer
 STM32_ST_USE_TIMER 12
 define CH_CFG_ST_RESOLUTION 16
 
-# Ép buộc USB hoạt động mà không cần tín hiệu từ chân VBUS (Quan trọng cho custom board)
+# flash size
+FLASH_SIZE_KB 2048
+FLASH_RESERVE_START_KB 128
+
+define HAL_STORAGE_SIZE 32768
+STORAGE_FLASH_PAGE 14
+
+# default to all pins low to avoid ESD issues
+DEFAULTGPIO OUTPUT LOW PULLDOWN
+
+# order of UARTs (and USB)
+SERIAL_ORDER  OTG1 USART1 USART2 USART3 UART4 USART6 UART7 UART8
+
+# USB - board has no VBUS sense circuit fitted
 define BOARD_OTG_NOVBUSSENS 1
 define STM32_OTG1_VBUS_SENSING FALSE
-# Bật USB OTG
 define STM32_USB_USE_OTG1 TRUE
 define STM32_USE_USB TRUE
-# Force USB clock source từ HSI48 (internal 48MHz oscillator riêng)
 define STM32_HSI48_ENABLED TRUE
 PA11 OTG_FS_DM OTG1
 PA12 OTG_FS_DP OTG1
 
-FLASH_SIZE_KB 2048
-FLASH_RESERVE_START_KB 128
-define HAL_STORAGE_SIZE 32768
-STORAGE_FLASH_PAGE 14
-# default to all pins low
-DEFAULTGPIO OUTPUT LOW PULLDOWN
-
-SERIAL_ORDER OTG1 USART1 USART2 USART3 UART4 USART6 UART7 UART8
-
 # USART1 - TELEM1
 PA9  USART1_TX USART1
 PA10 USART1_RX USART1
+
 # USART2 - DJIO3
 PA2 USART2_TX USART2
 PA3 USART2_RX USART2
+
 # USART3 - GPS
 PD8 USART3_TX USART3
 PD9 USART3_RX USART3
+
 # UART4 - TELEM2
 PA0 UART4_TX UART4
 PA1 UART4_RX UART4
+
 # UART6 - RC_INPUT
 PC6 USART6_TX USART6
 PC7 USART6_RX USART6
 PD0 SBUS_INV OUTPUT LOW
+
 # UART7 - ESC
 PE7 UART7_RX UART7
+
 # UART8 - TELEM3
 PE1 UART8_TX UART8
 PE0 UART8_RX UART8
 
+# SWD
 PA13 JTMS-SWDIO SWD
 PA14 JTCK-SWCLK SWD
 
+# CAN
 PB8 CAN1_RX CAN1
 PB9 CAN1_TX CAN1
 
-# I2C1 (index 0) - CONNECTOR | I2C2 (index 1) - SENSORS
+# two I2C buses - I2C1 external connector, I2C2 onboard sensors
 I2C_ORDER I2C1 I2C2
-# Giới hạn tốc độ I2C xuống 100kHz (thay vì 400kHz mặc định)
-# → Giúp IST8310/DPS310 respond ổn định hơn khi debug
 define HAL_I2C_BUS_CLOCK_MAX_KHZ 100
-# Fix STM32H7 DMA silicon bug: I2C DMA conflict với ADC/SPI → disable DMA cho I2C
 define STM32_I2C_USE_DMA FALSE
-# I2C1 - CONNECTOR
+
+# I2C1 - external connector
 PB6 I2C1_SCL I2C1
 PB7 I2C1_SDA I2C1
-# I2C2 - BARO & MAG (IST8310 + DPS310)
-# PULLUP: hỗ trợ thêm cho điện trở ngoài 10K (borderline ở 100kHz)
+
+# I2C2 - onboard compass/baro
 PB10 I2C2_SCL I2C2 PULLUP
 PB11 I2C2_SDA I2C2 PULLUP
 
+# PWM output pins
 PE14 TIM1_CH4  TIM1  PWM(1)  GPIO(50) BIDIR
 PE13 TIM1_CH3  TIM1  PWM(2)  GPIO(51)
 PE11 TIM1_CH2  TIM1  PWM(3)  GPIO(52) BIDIR
@@ -84,36 +97,47 @@ PD13 TIM4_CH2  TIM4  PWM(8)  GPIO(57)
 PD14 TIM4_CH3  TIM4  PWM(9)  GPIO(58)
 PD15 TIM4_CH4  TIM4  PWM(10) GPIO(59)
 
+# LEDs
 PE5 LED_RED   OUTPUT LOW GPIO(0)
 PE6 LED_GREEN OUTPUT LOW GPIO(1)
 PE4 LED_BLUE  OUTPUT LOW GPIO(2)
+
 define AP_NOTIFY_GPIO_LED_RGB_RED_PIN 0
 define AP_NOTIFY_GPIO_LED_RGB_GREEN_PIN 1
 define AP_NOTIFY_GPIO_LED_RGB_BLUE_PIN 2
 define AP_NOTIFY_GPIO_LED_RGB_ENABLED 1
 
+# ADC for Power
 PC0 BATT_VOLTAGE_SENS ADC1 SCALE(1)
 PC1 BATT_CURRENT_SENS ADC1 SCALE(1)
+
 define HAL_BATT_VOLT_PIN 10
 define HAL_BATT_CURR_PIN 11
-define HAL_BATT_VOLT_SCALE 21.12
+define HAL_BATT_VOLT_SCALE 11.0
 define HAL_BATT_CURR_SCALE 40.2
 
+# compass
 define AP_COMPASS_IST8310_INTERNAL_BUS_PROBING_ENABLED 1
 define AP_COMPASS_IST8310_EXTERNAL_BUS_PROBING_ENABLED 1
 define AP_COMPASS_PROBING_ENABLED 1
 define HAL_COMPASS_AUTO_ROT_DEFAULT 2
-# --- IST8310 on-board (I2C2 = ALL_INTERNAL, bus index 1) ---
-COMPASS IST8310 I2C:ALL_INTERNAL:0x0E false ROTATION_YAW_90
-# --- QMC5883L on-board (nếu board dùng QMC thay IST) ---
-COMPASS QMC5883L I2C:ALL_INTERNAL:0x0D false ROTATION_YAW_90
-# --- External fallback: la bàn GPS cắm ngoài qua I2C1 ---
-COMPASS IST8310 I2C:ALL_EXTERNAL:0x0E true ROTATION_NONE
-COMPASS QMC5883L I2C:ALL_EXTERNAL:0x0D true ROTATION_NONE
 
+COMPASS IST8310  I2C:ALL_INTERNAL:0x0E false ROTATION_YAW_90
+COMPASS QMC5883L I2C:ALL_INTERNAL:0x0D false ROTATION_YAW_90
+COMPASS IST8310  I2C:ALL_EXTERNAL:0x0E true  ROTATION_NONE
+COMPASS QMC5883L I2C:ALL_EXTERNAL:0x0D true  ROTATION_NONE
+
+# barometer - DPS310 and DPS368 are BOTH handled by the DPS310 driver.
+# They share chip ID 0x10 at register 0x0D, the same 0x76/0x77 I2C
+# addressing (selected by the SDO pin) and the same 16x oversampling
+# scale factor of 253952, so no separate DPS368 driver is needed.
+# Official boards do the same - see AeroCogito-H7Digital and
+# TBS_LUCID_H7V3 hwdefs.
+# Both addresses are probed so the board works whichever way SDO is strapped.
 BARO DPS310 I2C:1:0x77
 BARO DPS310 I2C:1:0x76
 
+# microSD support
 PC12 SDMMC1_CK  SDMMC1
 PD2  SDMMC1_CMD SDMMC1
 PC8  SDMMC1_D0  SDMMC1
@@ -122,45 +146,51 @@ PC10 SDMMC1_D2  SDMMC1
 PC11 SDMMC1_D3  SDMMC1
 define FATFS_HAL_DEVICE SDCD1
 
+# SPI1 - AT7456E OSD
 PA5 SPI1_SCK  SPI1
 PA6 SPI1_MISO SPI1
 PA7 SPI1_MOSI SPI1
-PB12 AT7456E_CS CS
+PD11 AT7456E_CS CS
 
+# SPI2 - IMUs (BMI088 + BMI270)
 PD3 SPI2_SCK  SPI2
 PC2 SPI2_MISO SPI2
 PC3 SPI2_MOSI SPI2
-# Tên CS PHẢI khớp chính xác với tên dùng trong SPIDEV bên dưới
-PD5  GYRO_CS   CS
-PD4  ACCEL_CS  CS
-PA15 BMI270_CS CS
+PD5  GYRO_CS    CS
+PD4  ACCEL_CS   CS
+PA15 BMI270_CS  CS
 
-SPIDEV bmi088_a SPI2 DEVID1 ACCEL_CS   MODE3 10*MHZ 10*MHZ
-SPIDEV bmi088_g SPI2 DEVID2 GYRO_CS    MODE3 10*MHZ 10*MHZ
-SPIDEV bmi270   SPI2 DEVID3 BMI270_CS  MODE3  1*MHZ 10*MHZ
-SPIDEV osd      SPI1 DEVID4 AT7456E_CS MODE0 10*MHZ 10*MHZ
+# SPI devices
+SPIDEV bmi088_a      SPI2 DEVID1  ACCEL_CS    MODE3  10*MHZ 10*MHZ
+SPIDEV bmi088_g      SPI2 DEVID2  GYRO_CS     MODE3  10*MHZ 10*MHZ
+SPIDEV bmi270        SPI2 DEVID3  BMI270_CS   MODE3   1*MHZ 10*MHZ
+SPIDEV osd           SPI1 DEVID4  AT7456E_CS  MODE0  10*MHZ 10*MHZ
 
+# IMUs. Probe order sets the instance numbering, and the primary is the
+# first healthy usable instance (_first_usable_gyro / _first_usable_accel
+# in AP_InertialSensor.cpp). BMI088 is listed first, so:
+#   - board WITH BMI088    -> BMI088 = IMU0 = primary, BMI270 = IMU1
+#   - board WITHOUT BMI088 -> probe fails, BMI270 = IMU0 = primary
 IMU BMI088 SPI:bmi088_a SPI:bmi088_g ROTATION_ROLL_180_YAW_270
 IMU BMI270 SPI:bmi270 ROTATION_ROLL_180
 
+# DMA priority to avoid contention on high speed peripherals
 DMA_PRIORITY SDMMC* ADC* SPI* UART* TIM*
 
-define HAL_BARO_ALLOW_INIT_NO_BARO 1
-define BRD_BOOT_DELAY_DEFAULT 3000
-
-define HAL_OS_FATFS_IO 1
-
-# HAL_I2C_INTERNAL_MASK = 2 (bitmask):
-# I2C_ORDER: I2C1=index0, I2C2=index1
-# bit0=I2C1(external connector), bit1=I2C2(on-board sensors)
-# 0b10 = 2 → chỉ I2C2 là internal (nơi IST8310 + DPS310 gắn)
-define HAL_I2C_INTERNAL_MASK 2
-# Cho phép boot/arm kể cả khi compass hoặc baro chưa init được
+# allow arming even if compass/baro are not found
 define ALLOW_ARM_NO_COMPASS 1
 define HAL_BARO_ALLOW_INIT_NO_BARO 1
 
+# I2C2 is the only internal (onboard sensor) bus, matching I2C_ORDER I2C1 I2C2
+define HAL_I2C_INTERNAL_MASK 2
+
+# enable FAT filesystem support (needs a microSD defined via SDMMC)
+define HAL_OS_FATFS_IO 1
+
+# setup for OSD
 define OSD_ENABLED 1
 define HAL_OSD_TYPE_DEFAULT 1
 ROMFS_WILDCARD libraries/AP_OSD/fonts/font*.bin
 
+# default frame class/type for BF migration
 define HAL_FRAME_TYPE_DEFAULT 12

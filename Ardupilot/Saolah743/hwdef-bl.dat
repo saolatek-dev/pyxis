@@ -1,0 +1,69 @@
+# hw definition file for processing by chibios_hwdef.py
+# for the Saolah743 bootloader
+
+# MCU class and specific type
+MCU STM32H7xx STM32H743xx
+
+# board ID. See Tools/AP_Bootloader/board_types.txt
+APJ_BOARD_ID AP_HW_Saolah743
+
+# crystal frequency - 8MHz external oscillator fitted
+OSCILLATOR_HZ 8000000
+
+# flash size
+FLASH_SIZE_KB 2048
+
+# bootloader is installed at zero offset
+FLASH_RESERVE_START_KB 0
+
+# the location where the bootloader will put the firmware
+FLASH_BOOTLOADER_LOAD_KB 128
+
+# order of UARTs (and USB)
+SERIAL_ORDER OTG1 USART1
+
+# USB - board has no VBUS sense circuit fitted
+define BOARD_OTG_NOVBUSSENS 1
+define STM32_OTG1_VBUS_SENSING FALSE
+define STM32_USB_USE_OTG1 TRUE
+define STM32_USE_USB TRUE
+define STM32_HSI48_ENABLED TRUE
+PA11 OTG_FS_DM OTG1
+PA12 OTG_FS_DP OTG1
+
+# USART1
+PA9  USART1_TX USART1
+PA10 USART1_RX USART1
+
+# pins for SWD debugging
+PA13 JTMS-SWDIO SWD
+PA14 JTCK-SWCLK SWD
+
+# CS pins
+PD11 AT7456E_CS CS
+PA15 BMI270_CS  CS
+PD5  GYRO_CS    CS
+PD4  ACCEL_CS   CS
+
+# LEDs
+PE6 LED_ACTIVITY   OUTPUT LOW #green
+PE4 LED_BOOTLOADER OUTPUT LOW #blue
+define HAL_LED_ON 0
+
+# Disable the bootloader's flash ECC scan at boot.
+#
+# AP_FLASH_ECC_CHECK_ENABLED defaults to on for every STM32H7 board
+# (Tools/AP_Bootloader/support.h). It uses DMA to scan the WHOLE application
+# area in 128-byte blocks, looking for ECC errors and erasing bad pages
+# before starting the application.
+#
+# On this board the scanned area is ~1.8 MB. Measured over SWD, the scan runs
+# at only ~2.2 KB/s over flash that HOLDS firmware, so every boot takes
+# ~14 MINUTES before the bootloader brings USB up. (On blank flash the scan
+# finishes in <5 s, ~200x faster, purely because of the flash contents.)
+# To the user the board looks dead.
+#
+# Trade-off: bad ECC flash pages are no longer detected and erased
+# automatically. If power is lost in the middle of a flash write, the board
+# may need reflashing over SWD/DFU.
+define AP_FLASH_ECC_CHECK_ENABLED 0

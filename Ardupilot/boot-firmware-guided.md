@@ -20,7 +20,10 @@ The archive contains:
 | `AP_Bootloader.bin`, `arducopter.bin` | Bootloader and firmware separately. Only needed for the manual method in section 4. |
 
 > [!NOTE]
-> This build is written for the **DPS310** barometer. Boards fitted with a DPS368 are not supported by this firmware.
+> Release `Ardupilot-v0.0.3` is written for the **DPS310** barometer. The current
+> [`hwdef.dat`](Saolah743/hwdef.dat) handles both DPS310 and DPS368 with the same
+> driver; for a DPS368 board, build the firmware from source until the next
+> release ([build-guided.md](build-guided.md)).
 
 ## 2. Enter DFU mode
 
@@ -59,11 +62,11 @@ sudo dfu-util -a 0 -s 0x08020000:leave -D arducopter.bin
 
 The firmware must go to `0x08020000`, because the first 128 KB are reserved for the bootloader.
 
-If you built the firmware yourself, the files are in `build/Saolah743/bin/` inside the ArduPilot tree.
+If you built the firmware yourself, `arducopter.bin` is in `build/Saolah743/bin/` and the bootloader is `Tools/bootloaders/Saolah743_bl.bin` (use it in place of `AP_Bootloader.bin`), both inside the ArduPilot tree.
 
 ## 5. Check the result
 
-About 3 seconds after reset, the board shows up as a serial port:
+A few seconds after reset, the board shows up as a serial port:
 
 ```bash
 ls /dev/ttyACM*

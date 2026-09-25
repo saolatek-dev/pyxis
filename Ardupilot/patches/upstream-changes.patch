@@ -1,0 +1,112 @@
+diff --git a/Tools/AP_Bootloader/bl_protocol.cpp b/Tools/AP_Bootloader/bl_protocol.cpp
+index 159d8d2..0662631 100644
+--- a/Tools/AP_Bootloader/bl_protocol.cpp
++++ b/Tools/AP_Bootloader/bl_protocol.cpp
+@@ -234,8 +234,26 @@ do_jump(uint32_t stacktop, uint32_t entrypoint)
+     asm volatile(
+         "mov sp, %0	\n"
+         "msr msp, %0	\n"
++        /*
++          clear CONTROL before entering the application.
++
++          ChibiOS runs its threads on the process stack, so we arrive here
++          with CONTROL.SPSEL=1 (PSP selected) and CONTROL.FPCA=1 (an active
++          FP context). NuttX-based firmware (eg. PX4) assumes the reset
++          state of CONTROL=0 -- privileged, MSP selected, no FP context. Left
++          as-is it runs the whole system off the process stack while setting
++          up MSP for interrupts, which quietly corrupts memory and shows up
++          later as garbage pointers and precise bus faults.
++
++          Writing CONTROL with SPSEL=0 switches the active SP to MSP, which
++          we have just set to stacktop, so the following "mov sp" is a no-op
++          in that case and still correct if the app kept PSP selected.
++         */
++        "msr control, %2	\n"
++        "isb			\n"
++        "mov sp, %0	\n"
+         "bx	%1	\n"
+-        : : "r"(stacktop), "r"(entrypoint) :);
++        : : "r"(stacktop), "r"(entrypoint), "r"(0) :);
+ }
+ 
+ #ifndef APP_START_ADDRESS
+@@ -337,10 +355,65 @@ jump_to_app()
+     rccResetOTG_HS();
+ #endif
+ #endif
+-    
++
++#if defined(STM32H7)
++    /*
++      restore the clock tree to reset defaults before jumping.
++
++      The rccDisableAPBx() calls above only gate the peripheral clocks; they
++      leave HSE and PLL1/2/3 running with SYSCLK still sourced from PLL1.
++      ChibiOS firmware copes with that, but NuttX-based firmware (eg. PX4)
++      configures PLL1 from scratch on startup and hangs when it finds PLL1
++      already running and selected as SYSCLK. The result is a boot loop:
++      jump -> app hangs -> watchdog reset -> fast-boot jump -> hang again,
++      with USB never up long enough to enumerate.
++
++      This mirrors what the PX4 bootloader does in its own clock_deinit().
++      All waits are bounded so a failure here can never hang the bootloader.
++     */
++    {
++        uint32_t i;
++
++        // enable HSI and wait for it to be ready
++        RCC->CR |= RCC_CR_HSION;
++        for (i=0; i<100000 && (RCC->CR & RCC_CR_HSIRDY) == 0; i++) {}
++
++        // switch SYSCLK back to HSI
++        RCC->CFGR = 0;
++        for (i=0; i<100000 && (RCC->CFGR & RCC_CFGR_SWS) != 0; i++) {}
++
++        // stop HSE, the clock security system and all PLLs
++        RCC->CR &= ~(RCC_CR_HSEON | RCC_CR_CSSHSEON |
++                     RCC_CR_PLL1ON | RCC_CR_PLL2ON | RCC_CR_PLL3ON);
++
++        // back to the PLLCFGR reset value, then drop HSEBYP
++        RCC->PLLCFGR = 0x01FF0000;
++        RCC->CR &= ~RCC_CR_HSEBYP;
++    }
++#endif
++
+     // disable all interrupt sources
+     port_disable();
+ 
++    /*
++      stop SysTick and clear every pending/enabled peripheral interrupt.
++
++      port_disable() only masks interrupts at the core; the SysTick timer
++      ChibiOS was running keeps counting and stays pending. NuttX-based
++      firmware (eg. PX4) re-enables interrupts early in startup, before it
++      has installed its own handlers, so that stale SysTick fires straight
++      into the application's default handler and wedges there. The PX4
++      bootloader avoids this with its own arch_systic_deinit().
++     */
++    SysTick->CTRL = 0;
++    SCB->ICSR = SCB_ICSR_PENDSTCLR_Msk;
++    for (uint8_t n=0; n<ARRAY_SIZE(NVIC->ICER); n++) {
++        NVIC->ICER[n] = 0xFFFFFFFF;
++        NVIC->ICPR[n] = 0xFFFFFFFF;
++    }
++    __DSB();
++    __ISB();
++
+     /* switch exception handlers to the application */
+     *(volatile uint32_t *)SCB_VTOR = APP_START_ADDRESS;
+ 
+diff --git a/Tools/AP_Bootloader/board_types.txt b/Tools/AP_Bootloader/board_types.txt
+index 9bce506..6f17c72 100644
+--- a/Tools/AP_Bootloader/board_types.txt
++++ b/Tools/AP_Bootloader/board_types.txt
+@@ -564,6 +564,8 @@ AP_HW_PixSurveyA2-IND                6104
+ # IDs 6110 - 6119 for S-vehicle
+ AP_HW_SVehicle-E2                    6110
+ 
++AP_HW_Saolah743                      6130
++
+ # IDs 6600-6699 reserved for Eagle Eye Drones
+ 
+ # IDs 6900-6909 reserved for Easy Aerial

@@ -1,4 +1,4 @@
-# SOURCE — ArduPilot for Pyxis (SaolaH743)
+# SOURCE — ArduPilot for Pyxis (Saolah743)
 
 This file records how the released binaries were built, so that anyone can
 reproduce them. It satisfies GPLv3 section 6. **Ship it with every release.**
@@ -32,12 +32,26 @@ git submodule update --init --recursive
 
 ## Saolatek changes
 
-| Path in the ArduPilot tree | Source in this repository |
-| --- | --- |
-| `libraries/AP_HAL_ChibiOS/hwdef/Saolah743/hwdef.dat` | [`hwdef.dat`](hwdef.dat) |
+### Added
 
-The board is registered by adding an `AP_HW_Saolah743` entry to
-`Tools/AP_Bootloader/board_types.txt`.
+All files go in `libraries/AP_HAL_ChibiOS/hwdef/Saolah743/`:
+
+| File in the ArduPilot tree | Source in this repository |
+| --- | --- |
+| `hwdef.dat` | [`Saolah743/hwdef.dat`](Saolah743/hwdef.dat) |
+| `hwdef-bl.dat` | [`Saolah743/hwdef-bl.dat`](Saolah743/hwdef-bl.dat) |
+| `defaults.parm` | [`Saolah743/defaults.parm`](Saolah743/defaults.parm) |
+| `README.md` | [`Saolah743/README.md`](Saolah743/README.md) |
+
+### Changes to original ArduPilot files
+
+Apply [`patches/upstream-changes.patch`](patches/upstream-changes.patch)
+(2026-09-25). It touches 2 files:
+
+| File | Change |
+| --- | --- |
+| `Tools/AP_Bootloader/board_types.txt` | `+AP_HW_Saolah743 6130`. `hwdef.dat` and `hwdef-bl.dat` refer to this name, so `waf configure` fails without it. |
+| `Tools/AP_Bootloader/bl_protocol.cpp` | Before jumping to the application, the bootloader now switches SYSCLK back to HSI and stops HSE and PLL1–3 (STM32H7 only), stops SysTick, clears every enabled and pending NVIC interrupt, and clears the CONTROL register. ChibiOS firmware does not need this; NuttX firmware (PX4) hangs or crashes without it when started by the ArduPilot bootloader. |
 
 ## Rebuilding
 
@@ -48,12 +62,12 @@ git checkout 1511f27194f1dcc3728270883047bdf022b3fd53
 git submodule update --init --recursive
 
 PYXIS=/path/to/pyxis
-mkdir -p libraries/AP_HAL_ChibiOS/hwdef/Saolah743
-cp "$PYXIS/Ardupilot/hwdef.dat" libraries/AP_HAL_ChibiOS/hwdef/Saolah743/
+cp -r "$PYXIS/Ardupilot/Saolah743" libraries/AP_HAL_ChibiOS/hwdef/
+git apply "$PYXIS/Ardupilot/patches/upstream-changes.patch"
 
+Tools/scripts/build_bootloaders.py Saolah743   # -> Tools/bootloaders/Saolah743_bl.bin
 ./waf configure --board Saolah743
-./waf copter
-./waf bootloader
+./waf copter                                    # -> build/Saolah743/bin/
 ```
 
 Build instructions in detail: [build-guided.md](build-guided.md).
@@ -77,6 +91,12 @@ a263fd07f91a88d202df176a7673b6de  4567312   arducopter_with_bl.hex
 ```
 
 Verify a download with `md5sum <file>` and compare against the table.
+
+> [!WARNING]
+> This release was built on 2026-09-08, before the board files above were
+> updated on 2026-09-25. Rebuilding from the current files does **not**
+> reproduce these checksums. The next release must be built from the current
+> files and recorded here.
 
 ## License
 
