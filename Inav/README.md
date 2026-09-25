@@ -10,16 +10,16 @@ The basic hardware specifications of the board, based on the pin map built into 
 *   **Accelerometer/gyro (IMU):** BMI270 (on SPI2)
 *   **Barometer:** DPS310 (on internal I2C2)
 *   **Compass:** IST8310 or QMC5883L supported (on internal I2C2)
-*   **OSD:** AT7456E (on SPI1)
+*   **OSD:** AT7456E (on SPI1, CS `PD11`)
 *   **Flight logging (Blackbox):** SD card over SDMMC
-*   **Serial ports (UARTs):** 8 physical UARTs + 1 USB VCP
+*   **Serial ports (UARTs):** 7 physical UARTs + 1 USB VCP
     *   `UART1`: TELEM1
-    *   `UART2`: DJIO3
+    *   `UART2`: DJI O3 / TELEM2 (the two connectors share UART2)
     *   `UART3`: GPS
-    *   `UART4`: TELEM2
-    *   `UART6`: RC INPUT (hardware SBUS inverter on pin `PD0`)
+    *   `UART4`: spare (UART4 connector)
+    *   `UART6`: RC INPUT (no hardware SBUS inverter)
     *   `UART7`: ESC telemetry
-    *   `UART8`: TELEM3
+    *   `UART8`: companion computer
 *   **I2C ports:**
     *   `I2C1`: for externally connected peripherals (external connector)
     *   `I2C2`: for internal sensors (internal baro/mag)
@@ -28,7 +28,7 @@ The basic hardware specifications of the board, based on the pin map built into 
     *   `M5-M6`: TIM3
     *   `M7-M10`: TIM4
 *   **Power sensing (ADC):**
-    *   Voltage: pin `PC0` (scale: 21.12)
+    *   Voltage: pin `PC0` (divider 11:1, `vbat_scale` = 1100)
     *   Current: pin `PC1` (scale: 40.2)
 
 For the detailed pinout of each peripheral, see [pinout.txt](./pinout.txt).

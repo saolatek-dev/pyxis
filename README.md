@@ -38,9 +38,8 @@ In firmware sources and build commands the board is identified as
 - BMI270 IMU, barometer and IST8310 compass on board.
 - AT7456E analog OSD.
 - Blackbox logging to microSD.
-- 2S–8S LiPo input with voltage and current sensing, 9 V and 5 V regulated rails.
+- 3S–5S LiPo input with voltage and current sensing, 9 V and 5 V regulated rails.
 - CAN bus (DroneCAN ready), external I²C and SWD debug header.
-- Hardware SBUS inverter on the RC input.
 - USB DFU flashing, no external programmer required.
 
 ## Specifications
@@ -53,8 +52,8 @@ In firmware sources and build commands the board is identified as
 | Barometer | DPS368 |
 | Magnetometer | IST8310 |
 | OSD | AT7456E |
-| Input voltage | 2S–8S LiPo |
-| Regulators | 9 V TPS54560 buck, 5 V TPS52933 step-down, dedicated LDOs for MCU and IMU |
+| Input voltage | 3S–5S LiPo (input TVS diode: SM6T27A) |
+| Regulators | 9 V TPS54560 buck, 5 V TPS62932 step-down, dedicated LDOs for MCU and IMU |
 | Board size | 36 × 36 mm |
 | Mounting | 31 × 31 mm |
 | Weight | 10 g |
@@ -80,25 +79,40 @@ In firmware sources and build commands the board is identified as
 | Host OS | Ubuntu 24.04 or WSL2 | Ubuntu or WSL2 | Ubuntu or WSL2 | Ubuntu 24.04 or WSL2 |
 | Toolchain | Installed by ArduPilot's setup script | `gcc-arm-none-eabi`, `cmake`, `make` | `gcc-arm-none-eabi`, `make`, or Docker | `gcc-arm-none-eabi`, `cmake`, `ninja-build` |
 | Flashing | `dfu-util` | INAV Configurator | Betaflight Configurator or `dfu-util` | STM32CubeProgrammer, `dfu-util` or INAV Configurator for the factory image; QGroundControl for updates |
+| Setup | [flashing-setup.md](Docs/flashing-setup.md) | [flashing-setup.md](Docs/flashing-setup.md) | [flashing-setup.md](Docs/flashing-setup.md) | [flashing-setup.md](Docs/flashing-setup.md) |
 | Ground station | Mission Planner or QGroundControl | INAV Configurator | Betaflight Configurator | QGroundControl |
 
 ## Quick start
 
-**1. Build the firmware** by following the guide for your flight stack:
+**1. Get the firmware.** The easiest way is to download a prebuilt file from
+[Releases](../../releases). Pick the newest tag for your flight stack
+(`Ardupilot-*`, `BetaFlight-*`, `PX4-*`) and extract the zip if there is one.
 
-| Firmware | Guide |
-| --- | --- |
-| ArduPilot | [Build](Ardupilot/build-guided.md), then [flash](Ardupilot/boot-firmware-guided.md) |
-| INAV | [Build and flash](Inav/Build-guided.md) |
-| Betaflight | [Port, build and flash](BetaFlight/guide.md) |
-| PX4 | [Build](PX4/build-guided.md), then [flash](PX4/flash-guided.md) |
+For a new board, or one running a different flight stack, use the file listed
+below. It includes everything the board needs to boot.
 
-Prebuilt firmware is published under [Releases](../../releases), tagged by
-firmware prefix: `Ardupilot-*`, `BetaFlight-*`, `Inav-*`, `PX4-*`. Each
-release carries the `SOURCE.md` for that build, pinning the upstream commit
-and listing checksums.
+| Firmware | File for a new board | Variant to check | Flashing guide |
+| --- | --- | --- | --- |
+| ArduPilot | `arducopter_with_bl.bin` / `.hex` | DPS310 barometer only | [Flash](Ardupilot/boot-firmware-guided.md) |
+| Betaflight | `betaflight_*_SAOLAH743_BMI270.hex` / `.dfu` | BMI270 IMU only | [Flash](BetaFlight/guide.md#step-5--flash-the-firmware) |
+| PX4 | `saolah743_h743_<variant>_factory.hex` / `.bin` | `default` = DPS310, `dps368` = DPS368 | [Flash](PX4/flash-guided.md) |
 
-**2. Enter DFU mode.**
+Use `.hex` with a graphical tool (Configurator, STM32CubeProgrammer), and
+`.bin` / `.dfu` with `dfu-util`. `dfu-util` cannot read `.hex` files.
+
+Each firmware folder has a `SOURCE.md` that pins the upstream commit and lists
+the MD5 checksum of every released file. Check a download with `md5sum <file>`.
+
+To build the firmware yourself instead, follow the build guide:
+[ArduPilot](Ardupilot/build-guided.md), [INAV](Inav/Build-guided.md),
+[Betaflight](BetaFlight/guide.md), [PX4](PX4/build-guided.md). INAV has no
+prebuilt release yet, so it must be built from source.
+
+**2. Set up your computer** (once): install `dfu-util` and the USB drivers as
+described in [Docs/flashing-setup.md](Docs/flashing-setup.md). On WSL2 the
+board is not visible until it is forwarded with `usbipd`.
+
+**3. Enter DFU mode.**
 
 1. Unplug the USB cable.
 2. Press and hold the BOOT button.
@@ -107,12 +121,12 @@ and listing checksums.
 Check that the board is visible:
 
 ```bash
-sudo dfu-util -l    # lists a device named "STM32 BOOTLOADER"
+sudo dfu-util -l    # lists a device 0483:df11 named "STM32 BOOTLOADER"
 ```
 
-**3. Flash** using the method in your firmware's guide.
+**4. Flash** using the method in your firmware's flashing guide (links in the table above).
 
-**4. Configure** ports, receiver and battery monitoring as described at the end of each guide.
+**5. Configure** ports, receiver and battery monitoring as described at the end of each guide.
 
 ## Usage
 
@@ -125,9 +139,10 @@ See the [wiring diagram](Docs/images/wiring.jpg) and the [connector layout](Docs
 | RC receiver (SBUS, CRSF, ELRS) | SBUS/CRSF | UART6 |
 | GPS and external compass | GPS | UART3, I²C1 |
 | Telemetry radio | TELEM1 | UART1 |
-| Second telemetry link | TELEM2 | UART4 |
-| DJI air unit | Back header | UART2 |
-| Companion computer | Back header | UART8 |
+| DJI air unit | DJI | UART2 |
+| Second telemetry link | TELEM2 | UART2 (shared with DJI, use one or the other) |
+| Spare serial | UART4 | UART4 |
+| Companion computer | UART8 | UART8 |
 | ESC | ESC | M1–M4, UART7 telemetry, current sense |
 | Analog VTX | VIDEO-OUT | 9 V |
 | FPV camera | VIDEO-IN | 9 V |
