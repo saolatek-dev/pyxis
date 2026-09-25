@@ -3,7 +3,7 @@
 Do this once, before following any of the flashing guides:
 [ArduPilot](../Ardupilot/boot-firmware-guided.md) ·
 [PX4](../PX4/flash-guided.md) ·
-[Betaflight](../BetaFlight/guide.md#step-5--flash-the-firmware)
+[Betaflight](../BetaFlight/flash-guided.md)
 
 Pick the section for your computer:
 

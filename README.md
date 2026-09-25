@@ -15,7 +15,7 @@ Pyxis is a 36 × 36 mm flight controller built around the STM32H743VIT6. It is a
 
 - An ArduPilot hardware definition with build and flash guides.
 - A drop-in INAV target.
-- A Betaflight porting guide.
+- Betaflight board configs and a BMI270 driver patch.
 - A complete PX4 board port, including a driver for the DPS368 barometer.
 - The pin map, connector drawings and board schematic.
 
@@ -27,7 +27,7 @@ In firmware sources and build commands the board is identified as
 | --- | --- | --- |
 | ArduPilot (ArduCopter) | Hardware definition | waf |
 | INAV | Target source | CMake |
-| Betaflight | Porting guide | make |
+| Betaflight | Board config and driver patch | make |
 | PX4 | Board port and DPS368 driver | CMake |
 
 ## Key features
@@ -94,7 +94,7 @@ below. It includes everything the board needs to boot.
 | Firmware | File for a new board | Variant to check | Flashing guide |
 | --- | --- | --- | --- |
 | ArduPilot | `arducopter_with_bl.bin` / `.hex` | DPS310 barometer only | [Flash](Ardupilot/boot-firmware-guided.md) |
-| Betaflight | `betaflight_*_SAOLAH743_BMI270.hex` / `.dfu` | BMI270 IMU only | [Flash](BetaFlight/guide.md#step-5--flash-the-firmware) |
+| Betaflight | `betaflight_*_SAOLAH743_BMI270.hex` / `.dfu` | BMI270 IMU only | [Flash](BetaFlight/flash-guided.md) |
 | PX4 | `saolah743_h743_<variant>_factory.hex` / `.bin` | `default` = DPS310, `dps368` = DPS368 | [Flash](PX4/flash-guided.md) |
 
 Use `.hex` with a graphical tool (Configurator, STM32CubeProgrammer), and
@@ -105,7 +105,7 @@ the MD5 checksum of every released file. Check a download with `md5sum <file>`.
 
 To build the firmware yourself instead, follow the build guide:
 [ArduPilot](Ardupilot/build-guided.md), [INAV](Inav/Build-guided.md),
-[Betaflight](BetaFlight/guide.md), [PX4](PX4/build-guided.md). INAV has no
+[Betaflight](BetaFlight/build-guided.md), [PX4](PX4/build-guided.md). INAV has no
 prebuilt release yet, so it must be built from source.
 
 **2. Set up your computer** (once): install `dfu-util` and the USB drivers as

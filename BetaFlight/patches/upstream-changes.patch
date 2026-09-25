@@ -1,0 +1,345 @@
+diff --git a/src/main/cli/cli.c b/src/main/cli/cli.c
+index bc31ce5a6..277ef957f 100644
+--- a/src/main/cli/cli.c
++++ b/src/main/cli/cli.c
+@@ -61,6 +61,7 @@ bool cliMode = false;
+ #include "config/simplified_tuning.h"
+ 
+ #include "drivers/accgyro/accgyro.h"
++#include "drivers/accgyro/accgyro_spi_bmi270.h"
+ #include "drivers/adc.h"
+ #include "drivers/buf_writer.h"
+ #include "drivers/bus_i2c.h"
+@@ -4366,6 +4367,22 @@ RAM_CODE static void cliGpsPassthrough(const char *cmdName, char *cmdline)
+ #if defined(USE_GYRO_REGISTER_DUMP) && !ENABLE_SIMULATOR
+ static void cliPrintGyroRegisters(uint8_t whichSensor)
+ {
++#ifdef USE_ACCGYRO_BMI270
++    // The BMI270 has its own register map and needs dummy-byte reads; the generic
++    // MPU path below would print meaningless values for it.
++    if (gyroMpuDetectionResult()->sensor == BMI_270_SPI) {
++        cliPrintLinef("# CHIP_ID         0x%X (0x24)", gyroReadRegisterBmi270(whichSensor, 0x00));
++        cliPrintLinef("# ERR_REG         0x%X (0x00)", gyroReadRegisterBmi270(whichSensor, 0x02));
++        cliPrintLinef("# INTERNAL_STATUS 0x%X (msg must be 0x1 = init_ok)", gyroReadRegisterBmi270(whichSensor, 0x21));
++        cliPrintLinef("# GYR_CONF        0x%X", gyroReadRegisterBmi270(whichSensor, 0x42));
++        cliPrintLinef("# GYR_RANGE       0x%X", gyroReadRegisterBmi270(whichSensor, 0x43));
++        cliPrintLinef("# PWR_CONF        0x%X (0x02)", gyroReadRegisterBmi270(whichSensor, 0x7C));
++        cliPrintLinef("# PWR_CTRL        0x%X (0x0E)", gyroReadRegisterBmi270(whichSensor, 0x7D));
++        cliPrintLinef("# CONFIG UPLOAD   %s after %d attempt(s)",
++                      bmi270ConfigUploadOk() ? "OK" : "FAILED", bmi270ConfigUploadAttempts());
++        return;
++    }
++#endif
+ #if defined(USE_ACCGYRO_ICM45686) || defined(USE_ACCGYRO_ICM45605)
+     // ICM-456xx uses different register addresses than MPU/ICM-426xx sensors
+     // Register 0x75 (MPU_RA_WHO_AM_I) is RESERVED on ICM-456xx
+diff --git a/src/main/drivers/accgyro/accgyro_spi_bmi270.c b/src/main/drivers/accgyro/accgyro_spi_bmi270.c
+index 6fa06f847..5164247c7 100644
+--- a/src/main/drivers/accgyro/accgyro_spi_bmi270.c
++++ b/src/main/drivers/accgyro/accgyro_spi_bmi270.c
+@@ -39,6 +39,13 @@
+ 
+ #include "sensors/gyro.h"
+ 
++// Set to 1 for boards whose PCB does not wire BMI270 INT1/INT2 to the MCU.
++// Disables the EXTI-driven data-ready path entirely and instead polls the
++// STATUS register over SPI before every read.
++#if !defined(BMI270_POLLING_STRICT)
++#define BMI270_POLLING_STRICT 0
++#endif
++
+ // When ENABLE_BMI270_ALIGN_AS_ICM is set, rotate the BMI270 raw data by CW90 so it
+ // presents identical axes to an ICM42688 and one board alignment serves either populated
+ // chip. Opt-in per config (#define ENABLE_BMI270_ALIGN_AS_ICM 1); off by default so no
+@@ -120,9 +127,15 @@ typedef enum {
+ // BMI270 register configuration values
+ typedef enum {
+     BMI270_VAL_CMD_SOFTRESET = 0xB6,
++    // INTERNAL_STATUS.message == 0b0001 means the config blob loaded and the
++    // gyro is usable. Until then the accelerometer works but the gyro does not.
++    BMI270_VAL_INTERNAL_STATUS_INIT_OK = 0x01,
++    BMI270_MSK_INTERNAL_STATUS_MESSAGE = 0x0F,
+     BMI270_VAL_CMD_FIFOFLUSH = 0xB0,
+     BMI270_VAL_PWR_CTRL = 0x0E,              // enable gyro, acc and temp sensors
+     BMI270_VAL_PWR_CONF = 0x02,              // disable advanced power save, enable FIFO self-wake
++    BMI270_VAL_STATUS_GYR_DRDY = 0x40,
++    BMI270_VAL_STATUS_ACC_DRDY = 0x80,
+     BMI270_VAL_ACC_CONF_ODR800 = 0x0B,       // set acc sample rate to 800hz
+     BMI270_VAL_ACC_CONF_ODR1600 = 0x0C,      // set acc sample rate to 1600hz
+     BMI270_VAL_ACC_CONF_BWP = 0x01,          // set acc filter in osr2 mode (only in high performance mode)
+@@ -195,7 +208,21 @@ uint8_t bmi270Detect(const extDevice_t *dev)
+     return MPU_NONE;
+ }
+ 
+-static void bmi270UploadConfig(const extDevice_t *dev)
++// Result of the last config-blob upload, surfaced through the `gyroregisters` CLI
++// command. Betaflight previously never checked this, so a failed upload looked
++// like healthy hardware with a permanently noisy gyro.
++static bool bmi270ConfigOk = false;
++static uint8_t bmi270ConfigTries = 0;
++
++bool bmi270ConfigUploadOk(void) { return bmi270ConfigOk; }
++uint8_t bmi270ConfigUploadAttempts(void) { return bmi270ConfigTries; }
++
++uint8_t bmi270ReadRegisterExt(const extDevice_t *dev, uint8_t reg)
++{
++    return bmi270RegisterRead(dev, (bmi270Register_e)reg);
++}
++
++static bool bmi270UploadConfig(const extDevice_t *dev)
+ {
+     bmi270RegisterWrite(dev, BMI270_REG_PWR_CONF, 0, 1);
+     bmi270RegisterWrite(dev, BMI270_REG_INIT_CTRL, 0, 1);
+@@ -205,6 +232,18 @@ static void bmi270UploadConfig(const extDevice_t *dev)
+ 
+     delay(10);
+     bmi270RegisterWrite(dev, BMI270_REG_INIT_CTRL, 1, 1);
++
++    // Datasheet: init_ok is asserted within ~20ms of INIT_CTRL going high.
++    // Poll well past that so a slow part is not called a failure.
++    for (int i = 0; i < 50; i++) {
++        delay(1);
++        const uint8_t status = bmi270RegisterRead(dev, BMI270_REG_INTERNAL_STATUS);
++        if ((status & BMI270_MSK_INTERNAL_STATUS_MESSAGE) == BMI270_VAL_INTERNAL_STATUS_INIT_OK) {
++            return true;
++        }
++    }
++
++    return false;
+ }
+ 
+ static uint8_t getBmiOsrMode(void)
+@@ -231,7 +270,7 @@ static void bmi270Config(gyroDev_t *gyro)
+ 
+     // If running in hardware_lpf experimental mode then switch to FIFO-based,
+     // 6.4KHz sampling, unfiltered data vs. the default 3.2KHz with hardware filtering
+-#ifdef USE_GYRO_DLPF_EXPERIMENTAL
++#if defined(USE_GYRO_DLPF_EXPERIMENTAL) && !BMI270_POLLING_STRICT
+     const bool fifoMode = (gyro->hardware_lpf == GYRO_HARDWARE_LPF_EXPERIMENTAL);
+ #else
+     const bool fifoMode = false;
+@@ -244,7 +283,20 @@ static void bmi270Config(gyroDev_t *gyro)
+     // Toggle the chip into SPI mode
+     bmi270EnableSPI(dev);
+ 
+-    bmi270UploadConfig(dev);
++    // Retry the upload: a single silent failure leaves the gyro emitting garbage
++    // while the accelerometer still reads correctly, which is very hard to
++    // diagnose in the field. Each retry starts from a clean soft reset.
++    bmi270ConfigOk = false;
++    for (bmi270ConfigTries = 1; bmi270ConfigTries <= 3; bmi270ConfigTries++) {
++        if (bmi270ConfigTries > 1) {
++            bmi270RegisterWrite(dev, BMI270_REG_CMD, BMI270_VAL_CMD_SOFTRESET, 100);
++            bmi270EnableSPI(dev);
++        }
++        if (bmi270UploadConfig(dev)) {
++            bmi270ConfigOk = true;
++            break;
++        }
++    }
+ 
+     // Configure the FIFO
+     if (fifoMode) {
+@@ -267,6 +319,9 @@ static void bmi270Config(gyroDev_t *gyro)
+     // Configure the gyro full-range scale
+     bmi270RegisterWrite(dev, BMI270_REG_GYRO_RANGE, BMI270_VAL_GYRO_RANGE_2000DPS, 1);
+ 
++    // Strict polling targets leave both BMI270 interrupt outputs disabled -
++    // there's nothing on the other end of INT1 to configure.
++#if !BMI270_POLLING_STRICT
+     // Configure the gyro data ready interrupt
+     if (fifoMode) {
+         // Interrupt driven by FIFO watermark level
+@@ -278,6 +333,7 @@ static void bmi270Config(gyroDev_t *gyro)
+ 
+     // Configure the behavior of the INT1 pin
+     bmi270RegisterWrite(dev, BMI270_REG_INT1_IO_CTRL, BMI270_VAL_INT1_IO_CTRL_PINMODE, 1);
++#endif
+ 
+     // Configure the device for  performance mode
+     bmi270RegisterWrite(dev, BMI270_REG_PWR_CONF, BMI270_VAL_PWR_CONF, 1);
+@@ -291,6 +347,7 @@ static void bmi270Config(gyroDev_t *gyro)
+     }
+ }
+ 
++#if !BMI270_POLLING_STRICT
+ extiCallbackRec_t bmi270IntCallbackRec;
+ 
+ /*
+@@ -332,9 +389,14 @@ static void bmi270ExtiHandler(extiCallbackRec_t *cb)
+     gyro->detectedEXTI++;
+ 
+ }
++#endif // !BMI270_POLLING_STRICT
+ 
+ static void bmi270IntExtiInit(gyroDev_t *gyro)
+ {
++#if BMI270_POLLING_STRICT
++    UNUSED(gyro);
++    return;
++#else
+     if (gyro->mpuIntExtiTag == IO_TAG_NONE) {
+         return;
+     }
+@@ -345,10 +407,51 @@ static void bmi270IntExtiInit(gyroDev_t *gyro)
+     EXTIHandlerInit(&gyro->exti, bmi270ExtiHandler);
+     EXTIConfig(mpuIntIO, &gyro->exti, NVIC_PRIO_MPU_INT_EXTI, IOCFG_IN_FLOATING, BETAFLIGHT_EXTI_TRIGGER_RISING);
+     EXTIEnable(mpuIntIO);
++#endif
++}
++
++#if BMI270_POLLING_STRICT
++static inline int16_t bmi270DecodeInt16(const uint8_t lsb, const uint8_t msb)
++{
++    return (int16_t)((uint16_t)lsb | ((uint16_t)msb << 8));
++}
++
++// spiReadRegMskBufRB sends the register address as its own SPI segment.
++// BMI270 then returns one dummy byte followed by six little-endian data bytes.
++static bool bmi270ReadAxesPolling(const extDevice_t *dev, const bmi270Register_e dataRegister, int16_t axes[XYZ_AXIS_COUNT])
++{
++    uint8_t raw[7];
++
++    if (!spiReadRegMskBufRB(dev, dataRegister, raw, sizeof(raw))) {
++        return false;
++    }
++
++    axes[X] = bmi270DecodeInt16(raw[1], raw[2]);
++    axes[Y] = bmi270DecodeInt16(raw[3], raw[4]);
++    axes[Z] = bmi270DecodeInt16(raw[5], raw[6]);
++
++    // 0x8000 on every axis is Bosch's invalid-data sentinel.
++    return (axes[X] != INT16_MIN) || (axes[Y] != INT16_MIN) || (axes[Z] != INT16_MIN);
+ }
++#endif
+ 
+ static bool bmi270AccRead(accDev_t *acc)
+ {
++#if BMI270_POLLING_STRICT
++    extDevice_t *dev = &acc->gyro->dev;
++
++    if (!(bmi270RegisterRead(dev, BMI270_REG_STATUS) & BMI270_VAL_STATUS_ACC_DRDY)) {
++        return false;
++    }
++
++    int16_t axes[XYZ_AXIS_COUNT];
++    if (!bmi270ReadAxesPolling(dev, BMI270_REG_ACC_DATA_X_LSB, axes)) {
++        return false;
++    }
++
++    bmi270StoreAxes(acc->ADCRaw, axes[X], axes[Y], axes[Z]);
++    return true;
++#else
+     extDevice_t *dev = &acc->gyro->dev;
+ 
+     switch (acc->gyro->gyroModeSPI) {
+@@ -390,10 +493,26 @@ static bool bmi270AccRead(accDev_t *acc)
+     }
+ 
+     return true;
++#endif
+ }
+ 
+ static bool bmi270GyroReadRegister(gyroDev_t *gyro)
+ {
++#if BMI270_POLLING_STRICT
++    extDevice_t *dev = &gyro->dev;
++
++    if (!(bmi270RegisterRead(dev, BMI270_REG_STATUS) & BMI270_VAL_STATUS_GYR_DRDY)) {
++        return false;
++    }
++
++    int16_t axes[XYZ_AXIS_COUNT];
++    if (!bmi270ReadAxesPolling(dev, BMI270_REG_GYR_DATA_X_LSB, axes)) {
++        return false;
++    }
++
++    bmi270StoreAxes(gyro->gyroADCRaw, axes[X], axes[Y], axes[Z]);
++    return true;
++#else
+     extDevice_t *dev = &gyro->dev;
+     int16_t *gyroData = (int16_t *)dev->rxBuf;
+ 
+@@ -466,9 +585,10 @@ static bool bmi270GyroReadRegister(gyroDev_t *gyro)
+     }
+ 
+     return true;
++#endif
+ }
+ 
+-#ifdef USE_GYRO_DLPF_EXPERIMENTAL
++#if defined(USE_GYRO_DLPF_EXPERIMENTAL) && !BMI270_POLLING_STRICT
+ static bool bmi270GyroReadFifo(gyroDev_t *gyro)
+ {
+     enum {
+@@ -531,7 +651,7 @@ static bool bmi270GyroReadFifo(gyroDev_t *gyro)
+ 
+ static bool bmi270GyroRead(gyroDev_t *gyro)
+ {
+-#ifdef USE_GYRO_DLPF_EXPERIMENTAL
++#if defined(USE_GYRO_DLPF_EXPERIMENTAL) && !BMI270_POLLING_STRICT
+     if (gyro->hardware_lpf == GYRO_HARDWARE_LPF_EXPERIMENTAL) {
+         // running in 6.4KHz FIFO mode
+         return bmi270GyroReadFifo(gyro);
+@@ -551,6 +671,10 @@ static void bmi270SpiGyroInit(gyroDev_t *gyro)
+ 
+     bmi270IntExtiInit(gyro);
+ 
++#if BMI270_POLLING_STRICT
++    gyro->gyroModeSPI = GYRO_EXTI_NO_INT;
++#endif
++
+     spiSetClkDivisor(dev, spiCalculateDivider(BMI270_MAX_SPI_CLK_HZ));
+ }
+ 
+diff --git a/src/main/drivers/accgyro/accgyro_spi_bmi270.h b/src/main/drivers/accgyro/accgyro_spi_bmi270.h
+index 6059f6c1a..56c0dffc1 100644
+--- a/src/main/drivers/accgyro/accgyro_spi_bmi270.h
++++ b/src/main/drivers/accgyro/accgyro_spi_bmi270.h
+@@ -26,3 +26,10 @@ uint8_t bmi270Detect(const extDevice_t *dev);
+ bool bmi270SpiAccDetect(accDev_t *acc);
+ bool bmi270SpiGyroDetect(gyroDev_t *gyro);
+ uint8_t bmi270InterruptStatus(gyroDev_t *gyro);
++
++// Config-blob upload health, for the `gyroregisters` CLI dump.
++bool bmi270ConfigUploadOk(void);
++uint8_t bmi270ConfigUploadAttempts(void);
++// BMI270 register reads need a leading dummy byte, so the generic MPU-style
++// read used elsewhere returns shifted garbage for this part.
++uint8_t bmi270ReadRegisterExt(const extDevice_t *dev, uint8_t reg);
+diff --git a/src/main/sensors/gyro_init.c b/src/main/sensors/gyro_init.c
+index 8c23ae9d6..be6e366c8 100644
+--- a/src/main/sensors/gyro_init.c
++++ b/src/main/sensors/gyro_init.c
+@@ -831,6 +831,19 @@ uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg)
+         return 0;
+     }
+ }
++
++#ifdef USE_ACCGYRO_BMI270
++// The BMI270 prefixes every register read with a dummy byte, so it cannot share
++// the MPU-style read above.
++uint8_t gyroReadRegisterBmi270(uint8_t whichSensor, uint8_t reg)
++{
++    if (whichSensor < GYRO_COUNT) {
++        return bmi270ReadRegisterExt(gyroExtDevice(whichSensor), reg);
++    } else {
++        return 0;
++    }
++}
++#endif
+ #endif // USE_GYRO_REGISTER_DUMP
+ 
+ int firstEnabledGyro(void)
+diff --git a/src/main/sensors/gyro_init.h b/src/main/sensors/gyro_init.h
+index 3fba53065..e18ee123e 100644
+--- a/src/main/sensors/gyro_init.h
++++ b/src/main/sensors/gyro_init.h
+@@ -34,4 +34,7 @@ struct mpuDetectionResult_s;
+ const struct mpuDetectionResult_s *gyroMpuDetectionResult(void);
+ int16_t gyroRateDps(int axis);
+ uint8_t gyroReadRegister(uint8_t whichSensor, uint8_t reg);
++#ifdef USE_ACCGYRO_BMI270
++uint8_t gyroReadRegisterBmi270(uint8_t whichSensor, uint8_t reg);
++#endif
+ int firstEnabledGyro(void);
