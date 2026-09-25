@@ -5,14 +5,14 @@
 param set-default BAT1_A_PER_V 40.2
 param set-default BAT1_N_CELLS 4
 param set-default BAT1_V_CHARGED 4.2
-# BAT1_V_DIV = tỉ số chia áp thật (V_pin / V_ADC), KHÔNG phải 21.12 như tài
-# liệu gốc (docs/Saolah743/hwdef-pin.md, kế thừa từ ArduPilot hwdef.dat) ghi.
-# Con số 21.12 đó chưa từng được đo — đội INAV đo trên board mẫu ra đúng
-# 10.93:1 (mạch chia danh định 11:1, R=10k:1k), lệch 0.6% nằm trong dung sai
-# điện trở. Dùng 21.12 khiến điện áp hiện gần gấp đôi thật (pin 3S báo ra
-# 20 mấy volt) — đã verify trực tiếp qua MAVLink trên board thật: báo
-# 20.708V, quy đổi theo tỉ số đúng ra ~10.72V, hợp lý cho pin 3S đang xả.
-# Xem docs/Saolah743/battery-voltage-scale-fix.md.
+# BAT1_V_DIV = the real divider ratio (V_pin / V_ADC), NOT 21.12 as the
+# original notes (hwdef-pin.md, inherited from an early ArduPilot hwdef.dat)
+# said. 21.12 was never measured: the INAV team measured 10.93:1 on a sample
+# board (nominal 11:1 divider, R = 10k:1k), 0.6% off, within resistor
+# tolerance. With 21.12 the voltage reads almost twice the real value (a 3S
+# pack shows 20-something volts). Verified over MAVLink on a real board: it
+# reported 20.708 V, which converts with the correct ratio to ~10.72 V,
+# plausible for a 3S pack under discharge.
 param set-default BAT1_V_DIV 10.93
 param set-default BAT1_V_EMPTY 3.2
 

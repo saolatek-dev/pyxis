@@ -9,9 +9,8 @@ PX4 port for the SAOLAH743 flight controller (STM32H743VIT6, 2 MB flash).
 | `build-guided.md` | How to build the firmware from source |
 | `flash-guided.md` | How to flash the firmware to the board |
 | `SOURCE.md` | Pins the upstream commit and lists our changes (used for releases) |
-| `boards/saolah743/h743/` | PX4 board port (25 files) |
-| `src/drivers/barometer/dps368/` | Infineon DPS368 barometer driver (written by us) |
-| `patches/upstream-changes.patch` | Changes to apply to 3 original PX4 files |
+| `boards/saolah743/h743/` | PX4 board port (24 files) |
+| `patches/upstream-changes.patch` | Change to apply to 1 original PX4 file (DPS310 driver) |
 | `LICENSE` | BSD 3-Clause |
 
 ## Prebuilt firmware
@@ -26,12 +25,17 @@ Each release contains:
 | `*.px4` | Board **already has** the PX4 bootloader — update through QGroundControl |
 | `saolah743_h743_bootloader.bin` | Flash the bootloader on its own |
 
-Two variants, depending on the barometer fitted to the board:
+Release `PX4-v0.0.3` comes in two variants, depending on the barometer fitted to the board:
 
 - `default` → **DPS310** barometer
 - `dps368` → **DPS368** barometer
 
-The IMU **does not need to be chosen** — both builds detect BMI088/BMI270 at boot, so the same firmware works on 1-IMU and 2-IMU boards.
+The current source builds a **single** firmware, `saolah743_h743_default`,
+that works with both barometers: the DPS368 has the same register map and
+Product ID as the DPS310, so the PX4 DPS310 driver handles both. The separate
+`dps368` driver and build variant have been removed.
+
+The IMU **does not need to be chosen** — the firmware detects BMI088/BMI270 at boot, so the same firmware works on 1-IMU and 2-IMU boards.
 
 ## Identifiers
 

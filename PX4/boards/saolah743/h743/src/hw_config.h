@@ -104,10 +104,10 @@
 
 #define OSC_FREQ                       8
 
-#define BOARD_PIN_LED_ACTIVITY         GPIO_nLED_BLUE // BLUE
-#define BOARD_PIN_LED_BOOTLOADER       GPIO_nLED_RED  // RED
-#define BOARD_LED_ON                   0
-#define BOARD_LED_OFF                  1
+#define BOARD_PIN_LED_ACTIVITY         GPIO_LED_BLUE // BLUE
+#define BOARD_PIN_LED_BOOTLOADER       GPIO_LED_RED  // RED
+#define BOARD_LED_ON                   1
+#define BOARD_LED_OFF                  0
 
 #define SERIAL_BREAK_DETECT_DISABLED   1
 

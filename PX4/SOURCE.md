@@ -22,21 +22,17 @@ does not identify a unique source tree.
 | Path in the PX4 tree | Source in this repository |
 |---|---|
 | `boards/saolah743/h743/` | `PX4/boards/saolah743/h743/` |
-| `src/drivers/barometer/dps368/` | `PX4/src/drivers/barometer/dps368/` |
 
 ### Changes to original PX4 files
 
-Apply `PX4/patches/upstream-changes.patch`, which touches 3 files:
+Apply `PX4/patches/upstream-changes.patch`, which touches 1 file:
 
 | File | Change |
 |---|---|
-| `src/drivers/barometer/CMakeLists.txt` | `+add_subdirectory(dps368)` |
-| `src/drivers/drv_sensor.h` | `+#define DRV_BARO_DEVTYPE_DPS368 0x64` |
 | `src/drivers/barometer/dps310/DPS310.cpp` | Retry the Product ID read up to 5 times (a single failed I2C read leaves `buf = 0`, which looks exactly like "Product_ID mismatch" at boot); count `comm errors` when `read()` fails instead of swallowing it silently |
 
-**Without the first 2 lines, the DPS368 driver is not compiled into the
-firmware** — the build still succeeds but the DPS368 barometer stays silent,
-which is very hard to trace.
+The DPS368 barometer uses the same DPS310 driver (identical register map and
+Product ID), so there is no separate DPS368 driver or build variant.
 
 ## Rebuilding
 
@@ -47,12 +43,10 @@ git checkout efd05431e8426d5a788ad814946bfba2f5da893e
 git submodule update --init --recursive
 
 PYXIS=/path/to/pyxis
-cp -r "$PYXIS/PX4/boards/saolah743"            boards/
-cp -r "$PYXIS/PX4/src/drivers/barometer/dps368" src/drivers/barometer/
+cp -r "$PYXIS/PX4/boards/saolah743" boards/
 git apply "$PYXIS/PX4/patches/upstream-changes.patch"
 
-make saolah743_h743            # DPS310 barometer
-make saolah743_h743_dps368     # DPS368 barometer
+make saolah743_h743            # firmware (DPS310 and DPS368)
 make saolah743_h743_bootloader # bootloader
 ```
 
@@ -82,6 +76,14 @@ MD5                               Bytes     File
 ```
 
 After downloading, check with `md5sum -c`, or run `md5sum <file>` and compare.
+
+> [!WARNING]
+> These are the files of release `PX4-v0.0.3`. That release was built from the
+> port as it was before 2026-09-25: separate `dps368` driver and build
+> variant, inverted LED polarity, and bootloader MD5
+> `72ca2c0ecd3bc8b1628b517b1312f9f3`. That source is in this repository's
+> history at commit `83ee3b7`. Rebuilding from the current files does **not**
+> reproduce these checksums; the next release must be recorded here.
 
 ## License
 

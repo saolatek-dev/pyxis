@@ -19,6 +19,12 @@
 
 The IMU does not matter. Both variants detect BMI088 and BMI270 automatically.
 
+> [!NOTE]
+> The two variants apply to release `PX4-v0.0.3`. Firmware built from the
+> current source ([build-guided.md](build-guided.md)) is a single
+> `saolah743_h743_default` file that works with both barometers, and drives
+> the RGB LED with the correct (active-high) polarity.
+
 ### Choose the file: what is on your board now?
 
 | Board state | File | Tool | Section |
@@ -171,5 +177,6 @@ broken.
 that only means *the bytes were written*. It does not confirm that the firmware
 boots. Reflash with STM32CubeProgrammer before suspecting the firmware.
 
-**Barometer not detected**: you flashed the wrong variant. Check which part is
-fitted (DPS310 or DPS368) and flash the matching file.
+**Barometer not detected** (release `PX4-v0.0.3`): you flashed the wrong
+variant. Check which part is fitted (DPS310 or DPS368) and flash the matching
+file, or build the current source, which supports both.

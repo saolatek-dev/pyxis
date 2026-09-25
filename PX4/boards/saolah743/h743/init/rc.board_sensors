@@ -22,22 +22,14 @@ fi
 
 bmi270 -s -b 2 -R 0 start
 
-# Internal baro on I2C2, probe both possible addresses (0x77 then 0x76).
-# Only one of the two baro drivers is present in any given build (default
-# configs: DPS310, the dps368 config: DPS368), so the command belonging to
-# the other one is simply an unknown command and its probe is a safe no-op.
+# Internal baro on I2C2 (DPS310 or DPS368, same driver: identical register map
+# and Product ID), probe both possible addresses (0x77 then 0x76).
 #
 # Bus speed dropped from the driver default 400kHz to 100kHz for signal
 # integrity — DPS310 was reading wildly wrong pressure at 400kHz on this
 # board (see docs/Saolah743/px4-known-issues.md), matching a fix ArduPilot
 # made for the same chip on another STM32H7 board (PR #12516: reduced clock
-# after seeing garbage register reads with comms reporting no errors). The
-# DPS368 is kept at the same 100kHz until it has been verified on hardware.
-if ! dps368 -I -a 119 -f 100 start
-then
-	dps368 -I -a 118 -f 100 start
-fi
-
+# after seeing garbage register reads with comms reporting no errors).
 if ! dps310 -I -a 119 -f 100 start
 then
 	dps310 -I -a 118 -f 100 start

@@ -65,10 +65,10 @@ __END_DECLS
 #  define xlat(p) (p)
 // index: 0=BLUE, 1=RED, 2=SAFETY, 3=GREEN
 static uint32_t g_ledmap[] = {
-	GPIO_nLED_BLUE,    // LED_BLUE (0)
-	GPIO_nLED_RED,     // LED_RED (1)
+	GPIO_LED_BLUE,    // LED_BLUE (0)
+	GPIO_LED_RED,     // LED_RED (1)
 	0,                 // LED_SAFETY (2) - no independent safety LED, use 0 placeholder
-	GPIO_nLED_GREEN,   // LED_GREEN (3)
+	GPIO_LED_GREEN,   // LED_GREEN (3)
 };
 
 #ifndef arraySize
@@ -96,9 +96,9 @@ static void phy_set_led(int led, bool state)
 		return;
 	}
 
-	/* Drive Low to switch on */
+	/* Drive High to switch on (active-high LED) */
 	if (g_ledmap[led] != 0) {
-		stm32_gpiowrite(g_ledmap[led], !state);
+		stm32_gpiowrite(g_ledmap[led], state);
 	}
 }
 
@@ -108,9 +108,9 @@ static bool phy_get_led(int led)
 		return false;
 	}
 
-	/* If Low it is on */
+	/* If High it is on */
 	if (g_ledmap[led] != 0) {
-		return !stm32_gpioread(g_ledmap[led]);
+		return stm32_gpioread(g_ledmap[led]);
 	}
 
 	return false;
