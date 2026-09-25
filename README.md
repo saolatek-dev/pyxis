@@ -63,24 +63,12 @@ In firmware sources and build commands the board is identified as
 
 ## Prerequisites
 
-### Hardware
-
 | Item | Requirement |
 | --- | --- |
 | Flight controller | Pyxis FC |
 | Cable | USB Type-C, data capable |
 | Boot mode | Access to the BOOT button |
 | Optional | microSD card for logging, SWD probe for debugging |
-
-### Software
-
-| | ArduPilot | INAV | Betaflight | PX4 |
-| --- | --- | --- | --- | --- |
-| Host OS | Ubuntu 24.04 or WSL2 | Ubuntu or WSL2 | Ubuntu or WSL2 | Ubuntu 24.04 or WSL2 |
-| Toolchain | Installed by ArduPilot's setup script | `gcc-arm-none-eabi`, `cmake`, `make` | `gcc-arm-none-eabi`, `make`, or Docker | `gcc-arm-none-eabi`, `cmake`, `ninja-build` |
-| Flashing | `dfu-util` | INAV Configurator | Betaflight Configurator or `dfu-util` | STM32CubeProgrammer, `dfu-util` or INAV Configurator for the factory image; QGroundControl for updates |
-| Setup | [flashing-setup.md](Docs/flashing-setup.md) | [flashing-setup.md](Docs/flashing-setup.md) | [flashing-setup.md](Docs/flashing-setup.md) | [flashing-setup.md](Docs/flashing-setup.md) |
-| Ground station | Mission Planner or QGroundControl | INAV Configurator | Betaflight Configurator | QGroundControl |
 
 ## Quick start
 
