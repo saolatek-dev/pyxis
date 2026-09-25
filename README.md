@@ -16,19 +16,19 @@ Pyxis is a 36 × 36 mm flight controller built around the STM32H743VIT6. It is a
 - An ArduPilot hardware definition with build and flash guides.
 - A drop-in INAV target.
 - Betaflight board configs and a BMI270 driver patch.
-- A complete PX4 board port, including a driver for the DPS368 barometer.
+- A complete PX4 board port.
 - The pin map, connector drawings and board schematic.
 
 In firmware sources and build commands the board is identified as
-**`SaolaH743`**, except in PX4, where the build targets are
-**`saolah743_h743`** and **`saolah743_h743_dps368`**.
+**`Saolah743`** in ArduPilot, **`SAOLA_H743`** in INAV, **`SAOLAH743`** /
+**`SAOLAH743_BMI270`** in Betaflight, and **`saolah743_h743`** in PX4.
 
 | Firmware | Provided | Build system |
 | --- | --- | --- |
-| ArduPilot (ArduCopter) | Hardware definition | waf |
-| INAV | Target source | CMake |
+| ArduPilot (ArduCopter) | Hardware definition and bootloader patch | waf |
+| INAV | Target source and driver patch | CMake |
 | Betaflight | Board config and driver patch | make |
-| PX4 | Board port and DPS368 driver | CMake |
+| PX4 | Board port and DPS310 driver patch | CMake |
 
 ## Key features
 
@@ -49,7 +49,7 @@ In firmware sources and build commands the board is identified as
 | MCU | STM32H743VIT6, Cortex-M7, 480 MHz |
 | Memory | 2 MB flash, 1 MB RAM |
 | IMU | BMI270 (default) or BMI088 |
-| Barometer | DPS368 |
+| Barometer | DPS310 or DPS368 |
 | Magnetometer | IST8310 |
 | OSD | AT7456E |
 | Input voltage | 3S–5S LiPo (input TVS diode: SM6T27A) |
@@ -59,7 +59,7 @@ In firmware sources and build commands the board is identified as
 | Weight | 10 g |
 
 > [!NOTE]
-> Boards ship with either a DPS310 or a DPS368 barometer. Confirm which part is fitted to yours. The ArduPilot, INAV and Betaflight definitions here are written for the DPS310; the PX4 port builds both variants (`saolah743_h743` for DPS310, `saolah743_h743_dps368` for DPS368).
+> Boards ship with either a DPS310 or a DPS368 barometer. The two parts share a register map and Product ID, so the current ArduPilot, INAV and PX4 sources drive both with the DPS310 driver. Release `Ardupilot-v0.0.3` supports the DPS310 only, and release `PX4-v0.0.3` comes in two variants (`default` for DPS310, `dps368` for DPS368); check which part is fitted to your board before flashing a release.
 
 ## Prerequisites
 
