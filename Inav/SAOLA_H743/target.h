@@ -343,7 +343,7 @@
 //
 // REMAINING DIFFERENCE from the smooth-flying board, deliberately not synced: that
 // one runs `serial 1 64` (index 1 = USART2) + `serialrx_provider = CRSF`, i.e. the
-// receiver is on UART2 (PA2/PA3, called DJIO3 in the hwdef) without the inverter. The two
+// receiver is on UART2 (PA2/PA3, the AIR UNIT connector) without the inverter. The two
 // boards therefore take different RC paths — keep that in mind when comparing flight feel.
 //
 // If this board also uses a CRSF receiver: change the line below to SERIALRX_CRSF

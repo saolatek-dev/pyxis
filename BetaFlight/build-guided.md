@@ -102,6 +102,6 @@ Open Betaflight Configurator and check:
   `INTERNAL_STATUS 0x1` and `CONFIG UPLOAD OK`. Any other value means the
   BMI270 did not load its config: the accelerometer works but the gyro only
   outputs noise.
-- **Ports**: TELEM1, DJI O3, GPS and RC input send and receive.
+- **Ports**: TELEM1, air unit, GPS and RC input send and receive.
 - **Motors**: DShot output on M1–M8. For M9/M10, use the `resource` commands in [README.md](README.md#hardware-summary).
 - **OSD**: the AT7456E shows the overlay.

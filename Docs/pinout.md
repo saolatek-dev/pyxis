@@ -13,7 +13,7 @@ For connector positions on the board, see the [connector layout](images/connecti
 | --- | --- | --- | --- | --- |
 | USB (OTG FS) | `PA12` DP | `PA11` DM | USB-C | Configurator, MAVLink |
 | UART1 | `PA9` | `PA10` | TELEM1 | Telemetry |
-| UART2 | `PA2` | `PA3` | DJI **and** TELEM2 (shared) | DJI air unit or second telemetry link |
+| UART2 | `PA2` | `PA3` | AIR UNIT **and** TELEM2 (shared) | Air unit or second telemetry link |
 | UART3 | `PD8` | `PD9` | GPS | GPS |
 | UART4 | `PA0` | `PA1` | UART4 | Spare |
 | UART6 | `PC6` | `PC7` | SBUS/CRSF | RC input |
@@ -22,9 +22,9 @@ For connector positions on the board, see the [connector layout](images/connecti
 
 The board has seven UARTs; there is no UART5.
 
-The DJI and TELEM2 connectors are wired to the same UART2 pins. Use only one of them at a time.
+The AIR UNIT and TELEM2 connectors are wired to the same UART2 pins. Use only one of them at a time.
 
-There is **no hardware SBUS inverter** (`PD0` is not connected). CRSF/ELRS work on UART6 directly. SBUS relies on the STM32H7 UART's built-in RX inversion, which the flight stack must enable in software. Pin 6 of the DJI connector (`SBUS`) is not connected to the MCU.
+There is **no hardware SBUS inverter** (`PD0` is not connected). CRSF/ELRS work on UART6 directly. SBUS relies on the STM32H7 UART's built-in RX inversion, which the flight stack must enable in software. Pin 6 of the AIR UNIT connector (`SBUS`) is not connected to the MCU.
 
 ### Connector pin order
 
@@ -34,7 +34,7 @@ There is **no hardware SBUS inverter** (`PD0` is not connected). CRSF/ELRS work 
 | TELEM2 | GND | 5V | TX | RX | | |
 | UART4, UART8, SBUS/CRSF | GND | 5V | TX | RX | | |
 | GPS | GND | 5V | TX | RX | SCL (I²C1) | SDA (I²C1) |
-| DJI | 9V | GND | TX | RX | GND | SBUS (not connected) |
+| AIR UNIT | 9V | GND | TX | RX | GND | SBUS (not connected) |
 
 TELEM1 is the only connector with RX on pin 3 and TX on pin 4.
 

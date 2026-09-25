@@ -20,7 +20,7 @@ The Saolah743 is a DIY flight controller based on the STM32H743.
 
 - SERIAL0 -> USB
 - SERIAL1 -> UART1 (TELEM1)
-- SERIAL2 -> UART2 (DJIO3 / DisplayPort)
+- SERIAL2 -> UART2 (AIR UNIT / DisplayPort)
 - SERIAL3 -> UART3 (GPS)
 - SERIAL4 -> UART4 (TELEM2)
 - SERIAL5 -> UART6 (RC_INPUT)

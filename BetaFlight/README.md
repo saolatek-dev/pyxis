@@ -51,7 +51,7 @@ and `SAOLAH743` for a board that also carries a BMI088.
 | Blackbox | microSD over SDMMC1, 4-bit |
 | Motors | M1–M4 TIM1, M5–M6 TIM3, M7–M10 TIM4 (DShot; bidirectional on M1, M3, M5) |
 | UART1 | TELEM1 (MSP) |
-| UART2 | DJI O3 (MSP DisplayPort) |
+| UART2 | Air unit (MSP DisplayPort) |
 | UART3 | GPS |
 | UART6 | RC input (SBUS inverted inside the UART; no hardware inverter) |
 | UART7 | ESC telemetry |

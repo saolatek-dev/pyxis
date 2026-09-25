@@ -15,7 +15,7 @@ The hardware as declared in the INAV target:
 *   **Flight logging (Blackbox):** SD card over SDMMC1, enabled by default
 *   **Serial ports:** 7 UARTs + USB VCP
     *   `UART1`: TELEM1
-    *   `UART2`: DJI O3 / TELEM2 (the two connectors share UART2)
+    *   `UART2`: air unit / TELEM2 (the two connectors share UART2)
     *   `UART3`: GPS
     *   `UART4`: spare (UART4 connector)
     *   `UART6`: RC input, SBUS by default (inverted in the UART itself; the board has no hardware inverter)
