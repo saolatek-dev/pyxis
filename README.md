@@ -88,11 +88,7 @@ To build the firmware yourself instead, follow the build guide:
 [ArduPilot](Ardupilot/build-guided.md), [INAV](Inav/Build-guided.md),
 [Betaflight](BetaFlight/build-guided.md), [PX4](PX4/build-guided.md).
 
-**2. Set up your computer** (once): install `dfu-util` and the USB drivers as
-described in [Docs/flashing-setup.md](Docs/flashing-setup.md). On WSL2 the
-board is not visible until it is forwarded with `usbipd`.
-
-**3. Enter DFU mode.**
+**2. Enter DFU mode.**
 
 1. Unplug the USB cable.
 2. Press and hold the BOOT button.
@@ -104,9 +100,9 @@ Check that the board is visible:
 sudo dfu-util -l    # lists a device 0483:df11 named "STM32 BOOTLOADER"
 ```
 
-**4. Flash** using the method in your firmware's flashing guide (links in the table above).
+**3. Flash** using the method in your firmware's flashing guide (links in the table above).
 
-**5. Configure** ports, receiver and battery monitoring as described at the end of each guide.
+**4. Configure** ports, receiver and battery monitoring as described at the end of each guide.
 
 ## Usage
 
