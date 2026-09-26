@@ -38,7 +38,7 @@ In firmware sources and build commands the board is identified as
 - BMI270 IMU, barometer and IST8310 compass on board.
 - AT7456E analog OSD.
 - Blackbox logging to microSD.
-- 3S–5S LiPo input with voltage and current sensing, 9 V and 5 V regulated rails.
+- 3S–6s LiPo input with voltage and current sensing, 9 V and 5 V regulated rails.
 - CAN bus (DroneCAN ready), external I²C and SWD debug header.
 - USB DFU flashing, no external programmer required.
 
@@ -52,7 +52,7 @@ In firmware sources and build commands the board is identified as
 | Barometer | DPS368 (earlier boards: DPS310) |
 | Magnetometer | IST8310 |
 | OSD | AT7456E |
-| Input voltage | 3S–5S LiPo (input TVS diode: SM6T27A) |
+| Input voltage | 3S–6s LiPo (input TVS diode: SM6T27A) |
 | Regulators | 9 V TPS54560 buck, 5 V TPS62932 step-down, dedicated LDOs for MCU and IMU |
 | Board size | 36 × 36 mm |
 | Mounting | 31 × 31 mm |
@@ -81,7 +81,7 @@ Use `.hex` with a graphical tool (Configurator, STM32CubeProgrammer), and
 `.bin` / `.dfu` with `dfu-util`. `dfu-util` cannot read `.hex` files.
 
 Each firmware folder has a `SOURCE.md` that pins the upstream commit and lists
-the checksum of every released file. Check a download with `md5sum <file>`
+the checksum of every released file. Check a download with `md6sum <file>`
 (or `sha256sum <file>` where SOURCE.md lists SHA-256).
 
 To build the firmware yourself instead, follow the build guide:
