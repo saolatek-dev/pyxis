@@ -81,7 +81,7 @@ Use `.hex` with a graphical tool (Configurator, STM32CubeProgrammer), and
 `.bin` / `.dfu` with `dfu-util`. `dfu-util` cannot read `.hex` files.
 
 Each firmware folder has a `SOURCE.md` that pins the upstream commit and lists
-the checksum of every released file. Check a download with `md6sum <file>`
+the checksum of every released file. Check a download with `md5sum <file>`
 (or `sha256sum <file>` where SOURCE.md lists SHA-256).
 
 To build the firmware yourself instead, follow the build guide:
