@@ -116,9 +116,8 @@ See the [wiring diagram](Docs/images/wiring.jpg) and the [connector layout](Docs
 | GPS and external compass | GPS | UART3, I²C1 |
 | Telemetry radio | TELEM1 | UART1 |
 | Digital video air unit | AIR UNIT | UART2 |
-| Second telemetry link | TELEM2 | UART2 (shared with AIR UNIT, use one or the other) |
-| Spare serial | UART4 | UART4 |
-| Companion computer | UART8 | UART8 |
+| Second telemetry link | TELEM2 | UART4 |
+| Companion computer | TELEM3 | UART8 |
 | ESC | ESC | M1–M4, UART7 telemetry, current sense |
 | Analog VTX | VIDEO-OUT | 9 V |
 | FPV camera | VIDEO-IN | 9 V |
