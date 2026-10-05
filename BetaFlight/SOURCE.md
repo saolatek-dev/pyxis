@@ -72,66 +72,51 @@ git -C src/config checkout 036eaa86f69cd24d34c05dcdeb7a005e59c7ca29
 make arm_sdk_install                   # Arm GNU Toolchain 13.3.rel1
 
 PYXIS=/path/to/pyxis
-git -C "$PYXIS" checkout 3e03018        # source of the released files
+git -C "$PYXIS" checkout 707f4d0        # source of the released files
 cp -r "$PYXIS/BetaFlight/configs/CUST/SAOLAH743"        src/config/configs/CUST/
 cp -r "$PYXIS/BetaFlight/configs/CUST/SAOLAH743_BMI270" src/config/configs/CUST/
 git apply "$PYXIS/BetaFlight/patches/upstream-changes.patch"
 
-# Fix the embedded build date to that of each released file (UTC)
-SOURCE_DATE_EPOCH=1790309130 make CONFIG=SAOLAH743_BMI270        # 2026-09-25 04:05:30
-SOURCE_DATE_EPOCH=1790309130 make CONFIG=SAOLAH743_BMI270 \
-  obj/betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
-SOURCE_DATE_EPOCH=1790309156 make CONFIG=SAOLAH743               # 2026-09-25 04:05:56
-SOURCE_DATE_EPOCH=1790309156 make CONFIG=SAOLAH743 \
-  obj/betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
+# Fix the embedded build date to that of the released files (UTC)
+export SOURCE_DATE_EPOCH=1791188346     # 2026-10-05 08:19:06
+make CONFIG=SAOLAH743_BMI270
+make CONFIG=SAOLAH743_BMI270 obj/betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
+make CONFIG=SAOLAH743
+make CONFIG=SAOLAH743 obj/betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
 ```
 
 With these commands the `.hex` and `.dfu` files in `obj/` are
-**byte-identical** to the released files. This was verified on 2026-09-25
+**byte-identical** to the released files. This was verified on 2026-10-05
 with `arm-none-eabi-gcc` 13.3.1 (`13.3.rel1`, installed by
-`make arm_sdk_install`). Without `SOURCE_DATE_EPOCH`, only the embedded
-build date and time differ.
+`make arm_sdk_install`) by building twice from a clean tree. Without
+`SOURCE_DATE_EPOCH`, only the embedded build date and time differ.
+
+Do not run `make clean` between the two variants: it deletes the `.hex` and
+`.dfu` files of the other variant too.
 
 Build instructions in detail: [build-guided.md](build-guided.md).
 
 ## Released artifacts
 
-Release [`BetaFlight-v0.0.2`](../../../releases/tag/BetaFlight-v0.0.2),
-archive `BetaFlight-SAOLAH743.zip`, built 2026-09-25 from this repository
-at commit `3e03018`. The release tag itself points at an older commit
-(`04d009c`); the commit given here is the authoritative source.
+Release [`BetaFlight-v0.0.3`](../../../releases/tag/BetaFlight-v0.0.3),
+archive `BetaFlight-SAOLAH743.zip`, built 2026-10-05 from this repository
+at commit `707f4d0`.
 
 ```
 MD5                               Bytes     File
-35e2213cc816b07e6935e52b96c377fd   596194   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
-374b80ecad25f8bbeea433d2663ddf4e  1676186   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.hex
-cffc5b40e8cfbcd2322915a769c159ab   599170   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
-89c3cb6f2dd9b327b848f69756da94fc  1684543   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.hex
+822bbb74729c2d24e4c7c73679b2a24d   596194   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
+d582ea983b915bbab5c96a0101bd7be5  1676186   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.hex
+8b1cdc9df7752fb9b5fd3251edcfac0e   599170   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
+a618d4808b641bf7d0d977c8ed1f9011  1684543   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.hex
 ```
 
 ```
 SHA-256                                                           File
-5f21f100130abe725592549f8c633c54c607ca034b382a3b8c7a64837e11fce9  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
-441fced7d5ffa22f234d090682f0b18b9c46dbd6a505290bf8bf800dfceb716f  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.hex
-3ba72254fd2b3ea58d108b9e47ba548381ed635f605e164771b82cfd4152b788  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
-9214b89e590874cf6d62de3a60cbf62b081dcdfa577cd2b60e3bff180df1a2a0  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.hex
+d8788e71b1ac022439248ac7c85ef859b6513e0cf73d7da2c593c130a4d060a1  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
+731a666f06299d78733bb8f6c52c92936fc371d237ac397b5cacb933520f62f7  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.hex
+a0d61e819a8a53ab635ff7e0e4b5760006fc6499ac391534ce992372098cd23b  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
+df5db59e3aed2ef3978a66144c7b857c38bd75950686f6318b0e33df7bb847f4  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.hex
 ```
-
-> [!WARNING]
-> These files were built before `ADC3_DMA_OPT` was added to both configs
-> (2026-10-05). Without it ADC3, which carries VREFINT and the core
-> temperature sensor on the H743, is never started. Battery voltage and CPU
-> temperature then read wrong: about 30 V and 217 °C on USB power alone.
-> Workaround on a board already flashed with this release, in the CLI:
->
-> ```
-> dma adc 3 9
-> save
-> ```
->
-> Rebuilding from the current configs does **not** reproduce these
-> checksums. The next release must be built from the current files and
-> recorded here.
 
 The archive also contains `LICENSE`, this `SOURCE.md`, `MD5SUMS.txt` and
 `SHA256SUMS.txt`. Verify a download with `md5sum <file>` or
@@ -143,22 +128,39 @@ file, since the copy inside the archive cannot contain its own checksum):
 
 ```
 MD5                               Bytes     File
-2ae6b5fba617df67047be29c6285dbcc  2150292   BetaFlight-SAOLAH743.zip
-SHA-256  12506a44661089c83aa45ec22b52edee4e89bd93fe220031699a0072c7bcc19f
+339a93284999405041e202289e94bf6b  2150622   BetaFlight-SAOLAH743.zip
+SHA-256  1b87137a4c6f9bd6562243053a4eef8594a61aca3369c6a69e0ef688d8394ff7
 ```
 
-The first upload of `BetaFlight-SAOLAH743.zip` on 2026-09-25 (MD5 `5006a47256bfa62ec3ddb266208a6935`,
-SHA-256 `5e3ef11e95dcb902…`) had the same firmware files but no `LICENSE`; it
-was replaced by the archive above.
+### Previous releases
 
-### Previously published assets
+**`BetaFlight-v0.0.2`** (archive `BetaFlight-SAOLAH743.zip`, MD5
+`2ae6b5fba617df67047be29c6285dbcc`), built 2026-09-25 from commit `3e03018`
+with `SOURCE_DATE_EPOCH=1790309130` (`SAOLAH743_BMI270`) and `1790309156`
+(`SAOLAH743`). Its configs lack `ADC3_DMA_OPT`. ADC3, which carries VREFINT
+and the core temperature sensor on the H743, is never started, so battery
+voltage and CPU temperature read wrong: about 30 V and 217 °C on USB power
+alone. Workaround on a board still running it, in the CLI:
 
-Until 2026-09-25 this release carried `bmi270.zip`
+```
+dma adc 3 9
+save
+```
+
+```
+MD5                               Bytes     File
+35e2213cc816b07e6935e52b96c377fd   596194   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.dfu
+374b80ecad25f8bbeea433d2663ddf4e  1676186   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743_BMI270.hex
+cffc5b40e8cfbcd2322915a769c159ab   599170   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.dfu
+89c3cb6f2dd9b327b848f69756da94fc  1684543   betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.hex
+```
+
+Until 2026-09-25 `BetaFlight-v0.0.2` carried `bmi270.zip`
 (MD5 `708adc45278747c8b02ed081080c7871`), built 2026-09-15 from the configs
 at commit `83ee3b7` with `SOURCE_DATE_EPOCH=1789441767`. That firmware has
 the OSD chip select on `PB12` instead of `PD11` (the OSD does not work) and
 a voltage scale of 213 instead of 110 (battery voltage reads about twice
-the real value). It has been replaced by the files above.
+the real value).
 
 ## License
 
