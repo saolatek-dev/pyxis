@@ -3,7 +3,7 @@
 MCU pin assignments for the Pyxis flight controller (ArduPilot `Saolah743`, INAV `SAOLA_H743`, Betaflight `SAOLAH743`, PX4 `saolah743_h743`), taken from the board schematic `h7_fc.kicad_sch`. The firmware definitions in this repository must match this table.
 
 > [!WARNING]
-> The current firmware sources in this repository match this table. The released binaries `Ardupilot-v0.0.3`, `BetaFlight-v0.0.2` and `PX4-v0.0.3` were built before some definitions were fixed (OSD chip select, battery voltage scale, LED polarity); see each directory's `SOURCE.md`.
+> The current firmware sources in this repository match this table. The released binaries `Ardupilot-v0.0.3`, `BetaFlight-v0.0.2` and `PX4-v0.0.3` were built before some definitions were fixed (OSD chip select, battery voltage scale, LED polarity, ADC3 DMA in Betaflight); see each directory's `SOURCE.md`.
 
 For connector positions on the board, see the [connector layout](images/connectivity.jpg).
 

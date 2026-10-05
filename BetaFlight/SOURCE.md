@@ -117,6 +117,22 @@ SHA-256                                                           File
 9214b89e590874cf6d62de3a60cbf62b081dcdfa577cd2b60e3bff180df1a2a0  betaflight_2026.12.0-alpha_STM32H743_SAOLAH743.hex
 ```
 
+> [!WARNING]
+> These files were built before `ADC3_DMA_OPT` was added to both configs
+> (2026-10-05). Without it ADC3, which carries VREFINT and the core
+> temperature sensor on the H743, is never started. Battery voltage and CPU
+> temperature then read wrong: about 30 V and 217 °C on USB power alone.
+> Workaround on a board already flashed with this release, in the CLI:
+>
+> ```
+> dma adc 3 9
+> save
+> ```
+>
+> Rebuilding from the current configs does **not** reproduce these
+> checksums. The next release must be built from the current files and
+> recorded here.
+
 The archive also contains `LICENSE`, this `SOURCE.md`, `MD5SUMS.txt` and
 `SHA256SUMS.txt`. Verify a download with `md5sum <file>` or
 `sha256sum <file>` and compare against the tables, or run
