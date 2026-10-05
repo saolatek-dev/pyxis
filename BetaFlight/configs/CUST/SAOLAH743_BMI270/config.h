@@ -134,6 +134,11 @@
     TIMER_PIN_MAP( 9, MOTOR10_PIN, 1, 11 )
 
 #define ADC1_DMA_OPT   8
+// On the H743 VREFINT and the core temperature sensor are only on ADC3.
+// Without a DMA stream ADC3 is never started, so Vref is computed from garbage
+// and both battery voltage and CPU temperature read wrong (e.g. 30 V / 217 C
+// on USB power). 9 = DMA2 Stream 1.
+#define ADC3_DMA_OPT   9
 #define TIMUP1_DMA_OPT 0
 #define TIMUP3_DMA_OPT 0
 #define TIMUP4_DMA_OPT 0
