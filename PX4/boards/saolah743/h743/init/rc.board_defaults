@@ -2,7 +2,13 @@
 #
 # Saolah743 board specific defaults
 #------------------------------------------------------------------------------
+# No onboard current sensor: current comes only from ESC connector pin 8
+# (CURR -> 1K -> PC1, no pull-down). Without an ESC current output the pin
+# floats and reads charge coupled from PC0 (VBAT), so the current and used
+# capacity are not valid. Keep BAT1_CAPACITY at -1 so the remaining estimate
+# is voltage based, and set BAT1_A_PER_V for the connected ESC.
 param set-default BAT1_A_PER_V 40.2
+param set-default BAT1_CAPACITY -1
 param set-default BAT1_N_CELLS 4
 param set-default BAT1_V_CHARGED 4.2
 # BAT1_V_DIV = the real divider ratio (V_pin / V_ADC), NOT 21.12 as the

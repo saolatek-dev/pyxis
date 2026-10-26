@@ -46,9 +46,11 @@ PWM outputs are grouped and every group must use the same output protocol:
 
 ## Battery Monitoring
 
+Battery voltage is measured onboard through an 11:1 voltage divider. The board has no onboard current sensor: current is read from pin 8 (CURR) of the 8-pin ESC connector, so current monitoring needs an ESC or power module with an analog current output on that pin. The firmware therefore defaults to voltage-only monitoring (BATT_MONITOR 3). BATT_MONITOR 4 (voltage and current) requires an ESC with an analog current output on pin 8; when using one, also set BATT_AMP_PERVLT from that ESC's datasheet.
+
 The default battery parameters are:
 
-- BATT_MONITOR 4
+- BATT_MONITOR 3 (voltage only)
 - BATT_VOLT_PIN 10
 - BATT_CURR_PIN 11
 - BATT_VOLT_MULT 11.0

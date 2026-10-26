@@ -1,11 +1,13 @@
-# BATTERY MONITOR ON
-BATT_MONITOR 4
-
 # enable second OSD type
 OSD_TYPE2 5
 
 # Serial Port defaults
+# SERIAL2 = USART2 = DJI O3 air unit (MSP DisplayPort).
+# SERIAL3 = USART3 = GPS. Keep SERIAL3 as the ONLY port with protocol 5:
+# AP_GPS assigns GPS1 to the FIRST serial port set to GPS, so setting
+# SERIAL2 to 5 makes GPS1 probe the empty USART2 and the real GPS is lost.
 SERIAL2_PROTOCOL 42
+SERIAL3_PROTOCOL 5
 SERIAL4_PROTOCOL 2
 SERIAL5_PROTOCOL 23
 SERIAL6_PROTOCOL 16

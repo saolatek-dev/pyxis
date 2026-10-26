@@ -38,7 +38,7 @@ In firmware sources and build commands the board is identified as
 - BMI270 IMU, barometer and IST8310 compass on board.
 - AT7456E analog OSD.
 - Blackbox logging to microSD.
-- 3S–6s LiPo input with voltage and current sensing, 9 V and 5 V regulated rails.
+- 3S–6S LiPo input with onboard voltage sensing, 9 V and 5 V regulated rails. Current is read from the ESC connector and needs an ESC with an analog current output.
 - CAN bus (DroneCAN ready), external I²C and SWD debug header.
 - USB DFU flashing, no external programmer required.
 

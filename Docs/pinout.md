@@ -88,6 +88,8 @@ PWM2 (8 pins): GND, VBAT, M5–M10.
 | Battery voltage | `PC0` | ADC1 | 11.0 (100 kΩ / 10 kΩ divider) |
 | Battery current | `PC1` | ADC1 | 40.2 (depends on the ESC's current sensor) |
 
+There is no onboard current sensor. `PC1` is fed only from pin 8 of the ESC connector and has no pull-down, so it floats when the ESC has no current output. ArduPilot and PX4 therefore default to voltage-only battery monitoring; enable current monitoring (`BATT_MONITOR 4` in ArduPilot, `BAT1_A_PER_V` in PX4) only with an ESC that provides an analog current output.
+
 Scale values are in ArduPilot's format (`BATT_VOLT_MULT`, `BATT_AMP_PERVLT`). In PX4 the voltage scale is `BAT1_V_DIV`; in Betaflight it is `vbat_scale` = 110, in INAV `vbat_scale` = 1100.
 
 ## Other
