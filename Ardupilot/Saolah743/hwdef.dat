@@ -116,6 +116,12 @@ define HAL_BATT_CURR_PIN 11
 define HAL_BATT_VOLT_SCALE 11.0
 define HAL_BATT_CURR_SCALE 40.2
 
+# No onboard current sensor: PC1 is only fed from ESC connector pin 8
+# (CURR, via 1K, no pull-down). With no ESC current output the pin floats
+# and reads charge coupled from PC0 (VBAT), so default to voltage only.
+# Users with a current-capable ESC set BATT_MONITOR 4 and BATT_AMP_PERVLT.
+define HAL_BATT_MONITOR_DEFAULT 3
+
 # compass
 define AP_COMPASS_IST8310_INTERNAL_BUS_PROBING_ENABLED 1
 define AP_COMPASS_IST8310_EXTERNAL_BUS_PROBING_ENABLED 1

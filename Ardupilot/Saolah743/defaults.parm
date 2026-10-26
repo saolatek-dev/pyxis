@@ -1,6 +1,3 @@
-# BATTERY MONITOR ON
-BATT_MONITOR 4
-
 # enable second OSD type
 OSD_TYPE2 5
 
