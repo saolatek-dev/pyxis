@@ -123,7 +123,11 @@ define HAL_BATT_CURR_SCALE 40.2
 define HAL_BATT_MONITOR_DEFAULT 3
 
 # compass
-define AP_COMPASS_IST8310_INTERNAL_BUS_PROBING_ENABLED 1
+# Must stay 0 (as on MicoAir743): generic internal-bus probing runs before the
+# COMPASS lines below and registers the onboard IST8310 with the Pixhawk
+# default ROTATION_PITCH_180, after which the hwdef line is skipped as a
+# duplicate device and its rotation is never applied.
+define AP_COMPASS_IST8310_INTERNAL_BUS_PROBING_ENABLED 0
 define AP_COMPASS_IST8310_EXTERNAL_BUS_PROBING_ENABLED 1
 define AP_COMPASS_PROBING_ENABLED 1
 define HAL_COMPASS_AUTO_ROT_DEFAULT 2
