@@ -20,10 +20,8 @@ The archive contains:
 | `AP_Bootloader.bin`, `arducopter.bin` | Bootloader and firmware separately. Only needed for the manual method in section 4. |
 
 > [!NOTE]
-> Release `Ardupilot-v0.0.3` is written for the **DPS310** barometer. The current
-> [`hwdef.dat`](Saolah743/hwdef.dat) handles both DPS310 and DPS368 with the same
-> driver; for a DPS368 board, build the firmware from source until the next
-> release ([build-guided.md](build-guided.md)).
+> Use release `Ardupilot-v0.0.4` or newer. It works with both the DPS310 and the
+> DPS368 barometer (same driver). `Ardupilot-v0.0.3` supports the DPS310 only.
 
 ## 2. Enter DFU mode
 

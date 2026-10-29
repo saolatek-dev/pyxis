@@ -75,28 +75,26 @@ Flashing: [boot-firmware-guided.md](boot-firmware-guided.md).
 
 ## Released artifacts
 
-Release [`Ardupilot-v0.0.3`](../../../releases/tag/Ardupilot-v0.0.3),
-archive `Saolah743-4.7.0-stable.zip`, built 2026-09-08.
+Release [`Ardupilot-v0.0.4`](../../../releases/tag/Ardupilot-v0.0.4),
+archive `Saolah743-4.7.0-stable.zip`, built 2026-10-27 from this repository
+at commit `31973c7` with the board files and patch listed above.
 
 ```
 MD5                               Bytes     File
-431747b2372b66e765486704651b99f2  4642656   Saolah743-4.7.0-stable.zip
-1071f5cafabb298f590b17b4d08562c2    18909   AP_Bootloader.apj
-2f17e64f24021e733b737eecbcb02651    20300   AP_Bootloader.bin
-49c378e717a0c561bc4c7bcdbb539d17    55856   AP_Bootloader.hex
-f89fc891f60ab70e36c403c68b62598f  1365937   arducopter.apj
-0734a8ba00d7c0bd7010ac9e51a317b0  1529612   arducopter.bin
-eb95067696f5c72efae5564c55870740  1660684   arducopter_with_bl.bin
-a263fd07f91a88d202df176a7673b6de  4567312   arducopter_with_bl.hex
+fc450c22a8644603c1bd966a3ad35d76  4871900   Saolah743-4.7.0-stable.zip
+b87ad62bd1a6406370a4b384b527a7eb    18173   AP_Bootloader.apj
+989ad5008760ded3dce8a6efbab04aed    19556   AP_Bootloader.bin
+b6f20f687847130f6980341c0c591de4    53816   AP_Bootloader.hex
+8f930e868e9b5645bb00729a1b4af351  1365545   arducopter.apj
+b191717d98466cbdf53cd09507a50702  1529132   arducopter.bin
+3426b90645f25898f23a9fbb9cf5d989  1660204   arducopter_with_bl.bin
+a1c517aa6e031f88db2c876abab0909b  4565992   arducopter_with_bl.hex
 ```
 
 Verify a download with `md5sum <file>` and compare against the table.
-
-> [!WARNING]
-> This release was built on 2026-09-08, before the board files above were
-> updated on 2026-09-25. Rebuilding from the current files does **not**
-> reproduce these checksums. The next release must be built from the current
-> files and recorded here.
+`arducopter_with_bl.bin` is not produced by waf: it is
+`arducopter_with_bl.hex` converted to a flat binary from `0x08000000`,
+padding gaps with `0xFF`.
 
 ## License
 
